@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Manager</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    {% for folder in current_path %}
+                        <li class="breadcrumb-item">
+                            <a href="{{ url_for('list_dir_route', server_dir='/'.join(current_path[:loop.index])) }}">{{ folder }}</a>
+                        </li>
+                    {% endfor %}
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+
+
+    <!-- Główny kontener Bootstrapa -->
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Panel na drzewo folderów -->
+      <div class="col-md-4 folder-panel">
+        <!-- Tutaj umieść drzewo folderów -->
+        <h3>Folder Tree</h3>
+        <ul id="folder_list">
+            {% for folder in content['dirs'] %}
+                <li><a href="{{ url_for('list_dir_route', server_dir=folder['full_path']) }}">{{ folder['name'] }}</a></li>
+            {% endfor %}
+        </ul>
+      </div>
+      <!-- Panel na widok plików -->
+      <div class="col-md-8 file-panel">
+        <!-- Tutaj umieść widok plików -->
+        <h3>File View</h3>
+        <ul>
+          {% for file in content['files'] %}
+                <li><a href="{{ url_for('list_dir_route', server_dir=file['full_path']) }}">{{ file['name'] }}</a></li>
+            {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+</div>
+
+
+
+
+
+</body>
+</html>
