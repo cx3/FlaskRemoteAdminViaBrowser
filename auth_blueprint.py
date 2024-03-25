@@ -8,7 +8,7 @@ bp = Blueprint('auth', __file__)
 
 
 users = {
-    'admin': 'admin'
+    'admin': '6b8d870cd2f23a7bb6e132f47439b5a86547277a930955a8c4053ab0a8d43403693ad78cc4cc30b47b205c221693518efc5e7f80ae1abc749f878f01246bc053'
 }
 
 
@@ -23,15 +23,17 @@ def auth_login_route():
         csrf_token = generate_csrf_token()
         session['csrf_token'] = csrf_token
         return render_template('login.html', csrf_token=csrf_token)
+
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = request.json.get('username')
+        password = request.json.get('password')
+        provided_csrf_token = request.json.get('csrf_token')
+
+        print(username, password, provided_csrf_token)
 
         if username in users and users[username] == password:
-            provided_csrf_token = request.form['csrf_token']
-
             if not is_valid_csrf_token(provided_csrf_token):
-                return render_template('error.html', error_message='Invalid CSRF Token')
+                return render_template('login.html', error_message='Invalid CSRF Token')
 
             session['username'] = username
             session['remote_addr'] = request.remote_addr
@@ -64,6 +66,7 @@ def login_required(view):
 def generate_csrf_token():
     token = hashlib.sha256(os.urandom(1024)).hexdigest()  # Generowanie losowego tokena CSRF
     return token
+
 
 def is_valid_csrf_token(provided_token):
     expected_token = session.get('csrf_token')
