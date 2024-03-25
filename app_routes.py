@@ -197,7 +197,10 @@ def custom_results_route():
 
     if not request.args:
         return redirect(url_for('custom_search_route'))
-    return render_template('advanced_search_form_results.html')
+    return render_template(
+        'advanced_search_form_results.html',
+
+    )
 
 
 @socketio.on('search_files', namespace='/custom_search')
@@ -210,7 +213,7 @@ def handle_search_files(data):
     print("@socketio.on   search_params: ", search_params)
 
     file_searcher = FileSearcher(**search_params)
-    session['file_searcher'] = file_searcher
+    globals()['file_searcher'] = file_searcher
 
     page = 1  # data.get('page', 1)
     items_per_page = 100
@@ -232,20 +235,52 @@ def handle_get_page(data):
 
     print(f"socketio get_page\t\tpage={page}  start_index={start_index}   endindex={end_index}")
 
-    x = session['file_searcher']
+    x = globals()['file_searcher']
+    if not x:
+        pass
+    else:
+        if end_index > len(x):
+            end_index = len(x)
+        paginated_results = x[start_index:end_index]
 
-    if end_index > len(x):
-        end_index = len(x)
-    paginated_results = x[start_index:end_index]
+        print(f"len paginated results {len(paginated_results)}")
 
-    print(f"len paginated results {len(paginated_results)}")
+        emit('render_new_page',
+             {
+                'results': paginated_results,
+                'size': len(paginated_results),
+                'page': page,
+                'id': id(x)
+            },
+            namespace='/custom_search'
+        )
 
-    emit('render_new_page',
-         {
-            'results': paginated_results,
-            'size': len(paginated_results),
-            'page': page,
-            'id': id(x)
+
+@socketio.on('stop_thread', namespace='/custom_search')
+def handle_stop_thread(data):
+    x = globals()['file_searcher']
+
+    if x:
+        x.kill()
+
+    emit(
+        'search_finished',
+        {
+            'killed': 'killed'
         },
         namespace='/custom_search'
     )
+
+
+@socketio.on('sort_and_show', namespace='/custom_search')
+def handle_sort_and_show(data):
+    print('sort_and_show')
+    column = data.get('column', 'column_created_at')
+    column = column.replace('column_', '')
+    print('sorting...')
+    x: FileSearcher = globals()['file_searcher']
+    x.sort(column)
+    globals()['file_searcher'] = x
+    print('sort finish')
+    # emit('render_new_page', {'page': 1})
+    emit('show_sorted', {}, namespace='/custom_search')
