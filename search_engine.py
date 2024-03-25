@@ -1,20 +1,20 @@
 import os
-import threading
 import time
 import bisect
+import threading
 from datetime import datetime
-from typing import List, Dict
 
-from dateutil import parser
-import platform
-import mimetypes
-from datetime import datetime
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO
 
 from utils import get_file_type
 
 
 def get_file_data(filepath):
+    """
+    Creates dict with basic info of a file passed in filepath
+    :param filepath:
+    :return: dict
+    """
     file_info = {}
     try:
         filepath = filepath.replace('\\', '/')
@@ -35,7 +35,7 @@ def get_file_data(filepath):
         return None
 
 
-def match_query(file_info, **use_filters):
+def match_query(file_info, **use_filters):  # REFACTOR - add more functionalities later
     matches = 0
     for key, value in use_filters.items():
         if key == 'starts_with':
@@ -62,11 +62,19 @@ def match_query(file_info, **use_filters):
 
 
 class FileSearcher:
+    """
+    Threaded advanced file searcher working on server side, it is used to show dynamic results of file search query
+    passed from the browser of client. It can work of very large amount of files and does not disturb workflow of
+    client web browser.
+    """
     socketio: SocketIO
 
     def __init__(self, root_dir, **query):
         self.root_dir = root_dir
         socketio = query.get('socketio', False)
+
+        if not isinstance(socketio, SocketIO):
+            raise TypeError('Pass arg socketio to FileSearcher!')
 
         self.sort_by = query.get('sortby', 'column_size_radio')
 
@@ -78,9 +86,6 @@ class FileSearcher:
         if self.sort_by == 'created':
             self.sort_by += '_at'
 
-        if not isinstance(socketio, SocketIO):
-            raise TypeError('Pass arg socketio to FileSearcher!')
-
         self.socketio = socketio
         self.query = query
         self.result = []
@@ -91,9 +96,18 @@ class FileSearcher:
         time.sleep(0.25)
 
     def kill(self):
+        """
+        Allows to kill thread with search task
+        :return:
+        """
         self._killed = True
 
     def __getitem__(self, key):
+        """
+        It allows for semantic of slicing internal results like a list:   file_searcher[start:stop] -> list
+        :param key: number of index in internal list, or slice - look up
+        :return:
+        """
         if isinstance(key, slice):
             start, stop, step = key.start, key.stop, key.step
             if start is None:
@@ -108,6 +122,10 @@ class FileSearcher:
         return self
 
     def __next__(self):
+        """
+        Allows object of this class to behave like a generator
+        :return:
+        """
         if self.current_index < len(self.result):
             result = self.result[self.current_index]
             self.current_index += 1
@@ -119,6 +137,12 @@ class FileSearcher:
         return len(self.result)
 
     def sort(self, column_name, reverse=False) -> bool:
+        """
+        Sort internal list of dicts by column.
+        :param column_name:
+        :param reverse:
+        :return:
+        """
         if not self.result:
             return False
         if column_name in self.result[0].keys():
@@ -127,6 +151,11 @@ class FileSearcher:
         return False
 
     def _search_files(self):
+        """
+        This function is used internally on the thread. It collects a list of dict with info about found files matching
+        to the query. It does not sort results, it returns them as they were found.
+        :return:
+        """
 
         filters = [
             'starts_with', 'ends_with', 'partial_name', 'min_size', 'max_size', 'created_after', 'created_before',
@@ -185,6 +214,11 @@ class FileSearcher:
         print('search finished emitted')
 
     def _search_files_autosort_insert(self):
+        """
+        This internal function working on the thread finds files matching to the query and inserts them to result list
+        with auto matching order.
+        :return:
+        """
 
         filters = [
             'starts_with', 'ends_with', 'partial_name', 'min_size', 'max_size', 'created_after', 'created_before',

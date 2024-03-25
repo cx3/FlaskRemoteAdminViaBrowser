@@ -26,6 +26,11 @@ def main_route():
 
 @app.route('/list_dir')
 def list_dir_route():
+    """
+    In web browser we put list_dir?server_dir=/existing/path/to/folder/on/server  in the link and this function builds
+    a view of folder passed to parameter.
+    :return: front-end code for web browser with content of folder passed to parameter
+    """
     server_dir = slash(request.args.get('server_dir', os.getcwd()))
 
     if os.path.isfile(server_dir):
@@ -42,6 +47,10 @@ def list_dir_route():
 
 @app.route('/get_folders', methods=['GET', 'POST'])
 def get_folders_route():
+    """
+    /get_folders?folder_id=/path/to/folder    this function returns list of names of folders in folder passed in param
+    :return: list of folders, json format
+    """
     print('/get_folders:')
     if request.method == 'POST':
         try:
@@ -56,6 +65,11 @@ def get_folders_route():
 
 @app.route('/file', methods=['GET', 'POST'])
 def get_file_route():
+    """
+    /file?path=/path/to/file  - with method get allows to download file from server, with post method it saves updated
+    content of a file
+    :return:
+    """
     path = request.args.get('path', False)
     mime_type, encodings = mimetypes.guess_type(path)
 
@@ -75,9 +89,9 @@ def get_file_route():
 
         print('request.method == POST')
         if os.path.isfile(safe):
-            print('isfile')
+            # print('isfile')
             if 'text' in mime_type:
-                print('text in mime')
+                # print('text in mime')
 
                 open(safe + '_NEW', 'wt').write(request.form['data'])
                 return jsonify({'msg': 'DATA SAVED ON THE SERVER'})
@@ -86,18 +100,22 @@ def get_file_route():
                     encodings = 'utf-8'
 
                 open(safe + '_NEW', 'wb').write(bytes(request.form['data'].encode(encoding=encodings)))
-                print('saved as binary')
+                # print('saved as binary')
         return "ok"
 
 
 @app.route('/upload', methods=['POST'])
 def upload_route():
+    """
+    Due to some other stuff to improve, this function by now DOES not allow to upload files
+    :return:
+    """
     if request.method == 'POST':
         dest = request.args.get('dest', False)
         print('upload post, dest=', dest)
 
         if os.path.isdir(dest):
-            print("isdir!")
+            # print("isdir!")
             print(request.files)
             return jsonify(response={'msg': 'zajebiscja!'})
     return 'BLEEE'
@@ -105,6 +123,10 @@ def upload_route():
 
 @app.route('/ace', methods=['POST', 'GET'])
 def ace_editor_route():
+    """
+    /ace?file=/path/to/file  - ACE editor for source codes in various programming languages with syntax highlighting
+    :return: json format error or ACE editor with content of loaded file from path on the server
+    """
     if request.method == 'GET':
         file = request.args.get('file', False)
         if not file:
@@ -116,6 +138,15 @@ def ace_editor_route():
 
 @socketio.on('search_files')
 def search_files(data):
+    """
+    In advanced_search_form / _form_results.html - when user clicks Search or when passed link with parameters to the
+    browser with GET method, this function is launched and on separate thread it collects info about matching files to
+    the query passed in data param.
+    Even working on big collection of files with heavy query, task on thread allows to send back to the web client new
+    results on the fly, what makes page dynamic.
+    :param data: structured query taken from web form
+    :return: we never take care about it due to it is an internal business of flask_socketio
+    """
     server_dir = slash(data['serverDir'])
 
     if not os.path.isdir(server_dir):
@@ -160,6 +191,10 @@ def search_files(data):
 
 @app.route('/search')
 def search_route():
+    """
+    Basic front end file searcher
+    :return:
+    """
     return render_template('search.html')
 
 
@@ -183,37 +218,50 @@ def image_route():
     return ''
 
 
-@app.route('/custom_search')
-def custom_search_route():
+@app.route('/advanced_search')
+def advanced_search_route():
+    """
+    When no args passed to link it renders advanced search files form.
+    When passed arguments to link it builds a query and starts search for files on the server building results on a
+    separate thread. With flask_socketio it allows to show dynamic results page.
+    :return: front end
+    """
     if request.method == 'GET':
         if len(request.args) == 0:
             return render_template('advanced_search_form.html')
-        return redirect(url_for('results_route', **request.args.to_dict()))
+        return redirect(url_for('advanced_results_route', **request.args.to_dict()))
 
 
-@app.route('/custom_search/results')
-def custom_results_route():
-    print("RESULTS!", request.path)
+@app.route('/advanced_search/results')
+def advanced_results_route():
+    # print("RESULTS!", request.path)
 
     if not request.args:
-        return redirect(url_for('custom_search_route'))
+        return redirect(url_for('advanced_search_route'))
     return render_template(
-        'advanced_search_form_results.html',
-
+        'advanced_search_form_results.html',  # **request.args.to_dict()
     )
 
 
 @socketio.on('search_files', namespace='/custom_search')
 def handle_search_files(data):
-    print("socketio search_files", str(data))
+    """
+    In advanced_search_form(_results) when clicked Search button, search files matching to the query is launched in the
+    background, emitting results to web client makes it dynamic - instead of waiting for sometimes long task for first
+    results. Function emits results of matching files in portions per hundred.
+    :param data: search files query passed from the web browser
+    :return: we never take care - it is internal business of flask_socketio
+    """
+
+    # print("socketio search_files", str(data))
     root_dir = data.get('root_dir', os.getcwd())
     search_params = data.get('search_params', {})
     search_params['root_dir'] = root_dir
     search_params['socketio'] = socketio
-    print("@socketio.on   search_params: ", search_params)
+    # print("@socketio.on   search_params: ", search_params)
 
     file_searcher = FileSearcher(**search_params)
-    globals()['file_searcher'] = file_searcher
+    globals()['file_searcher'] = file_searcher  # REFACTOR IT ONE DAY...
 
     page = 1  # data.get('page', 1)
     items_per_page = 100
@@ -223,11 +271,23 @@ def handle_search_files(data):
         end_index = len(file_searcher)
     paginated_results = file_searcher[start_index:end_index]
 
-    emit('search_results', {'results': paginated_results, 'id': id(file_searcher)}, namespace='/custom_search')
+    emit('search_results',
+         {
+             'results': paginated_results,
+             'id': id(file_searcher)
+         },
+         namespace='/custom_search'
+    )
 
 
 @socketio.on('get_page', namespace='/custom_search')
 def handle_get_page(data):
+    """
+    By changing in web browser page number, it emits new portion of data - a found results of passed earlier a search
+    query.
+    :param data:
+    :return:
+    """
     page = int(data.get('page', 1))
     items_per_page = 100
     start_index = (page - 1) * items_per_page
@@ -258,6 +318,11 @@ def handle_get_page(data):
 
 @socketio.on('stop_thread', namespace='/custom_search')
 def handle_stop_thread(data):
+    """
+    When heavy file search task gives us too much results / works too long etc - we kill the thread.
+    :param data:
+    :return:
+    """
     x = globals()['file_searcher']
 
     if x:
@@ -274,7 +339,12 @@ def handle_stop_thread(data):
 
 @socketio.on('sort_and_show', namespace='/custom_search')
 def handle_sort_and_show(data):
-    print('sort_and_show')
+    """
+    When we have some found files matching to the query and now we want to change column that we want to sort by it.
+    :param data:
+    :return:
+    """
+    # print('sort_and_show')
     column = data.get('column', 'column_created_at')
     column = column.replace('column_', '')
     print('sorting...')
