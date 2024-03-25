@@ -274,7 +274,9 @@ def handle_search_files(data):
     emit('search_results',
          {
              'results': paginated_results,
-             'id': id(file_searcher)
+             'id': id(file_searcher),
+             'totalLen': len(file_searcher),
+             'is_finished': file_searcher.is_finished()
          },
          namespace='/custom_search'
     )
@@ -349,7 +351,7 @@ def handle_sort_and_show(data):
     column = column.replace('column_', '')
     print('sorting...')
     x: FileSearcher = globals()['file_searcher']
-    x.sort(column)
+    x.sort(column, True if data.get('order', 'asc') else False)
     globals()['file_searcher'] = x
     print('sort finish')
     # emit('render_new_page', {'page': 1})

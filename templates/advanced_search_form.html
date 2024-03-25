@@ -151,7 +151,7 @@
     function sendForm() {
         var container = document.querySelector('.container-dark'); // Pobierz kontener
         var inputs = container.querySelectorAll('input, select'); // Znajdź wszystkie inputy i selecty w kontenerze
-        var link = "{{ url_for('custom_results_route') }}" + '?'; // Początek linku
+        var link = "{{ url_for('advanced_results_route') }}" + '?'; // Początek linku
 
         inputs.forEach(function(input) {
             var paramName = input.id; // Pobierz ID elementu jako nazwę parametru

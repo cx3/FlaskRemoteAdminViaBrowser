@@ -287,7 +287,7 @@ class FileSearcher:
                 'pages': len(self.result) // 100,
                 'iters': iters
             },
-            namespace='/custom_search'
+            # namespace='/custom_search'
         )
         print('search finished emitted')
 
