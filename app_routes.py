@@ -1,5 +1,5 @@
-import mimetypes
 import os
+import mimetypes
 from datetime import datetime
 
 from utils import slash, list_dir, make_secured_path, get_file_type
