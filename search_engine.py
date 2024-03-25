@@ -219,7 +219,7 @@ class FileSearcher:
         with auto matching order.
         :return:
         """
-
+        time_start = time.time()
         filters = [
             'starts_with', 'ends_with', 'partial_name', 'min_size', 'max_size', 'created_after', 'created_before',
             'extension'
@@ -285,11 +285,12 @@ class FileSearcher:
             {
                 'len': len(self.result),
                 'pages': len(self.result) // 100,
-                'iters': iters
+                'iters': iters,
+                'time': (time.time() - time_start) * 1000.
             },
-            # namespace='/custom_search'
+            namespace='/custom_search'
         )
-        print('search finished emitted')
+        # print('search finished emitted')
 
     def wait_until_finished(self):
         self.search_thread.join()

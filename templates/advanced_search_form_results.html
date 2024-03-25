@@ -185,7 +185,7 @@
                     </ul>
                 </div>
 
-                <button onclick="function(){ searchFiles() }" class="btn btn-danger" id="searchStop">Search</button>
+                <button onclick="searchFiles()" class="btn btn-danger" id="searchStop">Search</button>
             </div>
         </div>
 
@@ -362,25 +362,18 @@ let disp = document.getElementById('modal-display-data');
 </script>
 
 
- <script src="{{ url_for('static', filename='advanced_search_form_results.js') }}"></script>
+ <!-- script src="{{ url_for('static', filename='advanced_search_form_results.js') }}"></script  -->
 
 
 
 <script>
-    /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2*/
-// params from link to inputs in form
-//document.addEventListener('DOMContentLoaded', function() {
-
-
-
+    
     // testing purposes
     var const_status_text = '';
     var root_dir = '';
     var totalPages = 1;
     var totalFilesFound = 0;
     var searchThreadStatus = 'ready';
-
-
 
 
 
@@ -450,8 +443,7 @@ let disp = document.getElementById('modal-display-data');
         btn.setAttribute('onclick', 'stopThread()');
     }
 
-    //searchFiles();
-
+    searchFiles();
 
 
     // checkboxes for showing/hiding columns
@@ -614,14 +606,16 @@ let disp = document.getElementById('modal-display-data');
         setStatus("finished");
 
         if (data.killed) {
-            setStatus("Searching thread killed");
+            const_status_text = "Searching thread killed. ";
+        } else {
+            totalPages = data.pages;
+            setStatus("Searching finished. Found", data.len, " files with ", data.iters, " iterations, pages count:", data.pages, "pages within time in ms: ", data.time);
+
+            searchThreadStatus = 'ready';
+            let btn = document.getElementById('searchStop');
+            btn.textContent = 'Search';
+            btn.setAttribute("onclick", "function(){ searchFiles(); }");
         }
-
-        totalPages = data.pages;
-        setStatus("Searching finished. Found", data.len, " files with ", data.iters, " iterations, pages count:", data.pages, "pages");
-
-        searchThreadStatus = 'ready';
-        document.getElementById('searchStop').textContent = 'Search';
     });
 
 
@@ -678,12 +672,6 @@ let disp = document.getElementById('modal-display-data');
         console.log("sorting request");
         socket.emit('sort_and_show', {'column': columnId, 'order': sortDirection[columnId]});
     }
-
-
-
-
-
-
 
 
     function sortTableOnThisPage(columnId) {
