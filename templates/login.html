@@ -7,20 +7,65 @@
 </head>
 <body>
     <h1>Login</h1>
-    <form action="" method="post">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <div>
         <p>
             <label for="username">Nazwa użytkownika:</label>
-            <input type="text" id="username" name="username">
+            <input type="text" id="username" name="username" value="admin">
         </p>
         <p>
             <label for="password">Hasło:</label>
-            <input type="password" id="password" name="password">
+            <input type="password" id="password" name="password" value="admin">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token }}">
         </p>
-        <input type="submit" value="Zaloguj">
-    </form>
+        <input type="submit" value="Zaloguj" onclick="post()">
+    </div>
     {% if error %}
     <p style="color: red;">{{ error }}</p>
     {% endif %}
+
+<script>
+
+function post() {
+    var password = document.getElementById("password").value;
+    for (let i=1;  i<358;  ++i) {
+        password  = CryptoJS.SHA512(password).toString(CryptoJS.enc.Hex);
+    }
+
+var xhr = new XMLHttpRequest();
+
+// Określ metodę i adres URL
+var url = window.location.href;
+xhr.open("POST", url, true);
+
+// Ustaw nagłówki żądania, jeśli są wymagane
+xhr.setRequestHeader("Content-Type", "application/json");
+
+// Utwórz obiekt zawierający dane do wysłania
+var data = JSON.stringify({
+    username: document.getElementById('username').value,
+    password: password,
+    csrf_token: document.getElementById('csrf_token').value
+});
+
+// Obsłuż zdarzenie gotowości zmiany stanu żądania
+xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+            // Sukces: status 200 oznacza, że odpowiedź jest poprawna
+            window.location.href = '/';
+        } else {
+            // Błąd: inny status niż 200 oznacza, że wystąpił błąd
+            alert('Błąd: ' + xhr.status);
+        }
+    }
+};
+
+// Wyślij żądanie z danymi
+xhr.send(data);
+
+}
+</script>
+
 </body>
 </html>

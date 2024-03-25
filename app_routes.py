@@ -17,9 +17,10 @@ socketio = SocketIO(app)
 
 @app.route('/')
 def main_route():
-    return """
+    return f"""
     <script>
-        window.location.href='/list_dir?server_dir=C:/STABLED/stable-diffusion-webui-master/extensions/deforum/';
+        //window.location.href='/list_dir?server_dir=C:/STABLED/stable-diffusion-webui-master/extensions/deforum/';
+        window.location.href='/list_dir?server_dir={slash(os.getcwd())}';
     </script>
     """
 
