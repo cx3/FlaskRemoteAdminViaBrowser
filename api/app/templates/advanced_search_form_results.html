@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.8">
+    <title>File Search</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        .container-dark {
+            background-color: #333;
+            color: #fff;
+        }
+
+        .container-dark input.form-control {
+            background-color: #222;
+            color: #fff;
+        }
+
+        .container-dark input.form-control:hover {
+            background-color: #555;
+            color: #ffcc00;
+        }
+
+        .container-dark label {
+            color: #ff0000; /* czerwony kolor dla labela */
+        }
+
+        .container-dark input[type="text"] {
+            color: #00ff00; /* zielony kolor dla tekstu w inputach typu text */
+        }
+
+        .container-dark input[type="number"] {
+            color: #00ff00; /* zielony kolor dla tekstu w inputach typu number */
+        }
+
+        .container-dark input[type="datetime-local"] {
+            color: #00ff00; /* zielony kolor dla tekstu w inputach typu datetime-local */
+        }
+
+        .table-header {
+            color: yellow; /* Kolor nagłówka */
+        }
+
+        body {
+            background-color: #050d01;
+            //background-color: #222;
+            //color: #fff;
+        }
+        th {
+            background-color: #013c69;
+            color: #eeeeee;
+        }
+        table {
+            width: 100%;        .table-header {
+            color: yellow; /* Kolor nagłówka */
+            border-collapse: collapse;
+        }
+
+        tr {
+            color: #00ff00;
+        }
+        tr:hover {
+            background-color: #333;
+        }
+        td:hover {
+            font-weight: bold;
+            font-color: #ff0000;
+        }
+
+        #status-bar-tr {
+            color: black;
+            background: #02f791;
+            font-size: 18px; /* Tutaj ustaw rozmiar czcionki na 18 pikseli */
+        }
+    </style>
+</head>
+<body>
+
+
+<div class="container-fluid container-dark">
+    <div class="row mt-2">
+        <div class="col-md-2">
+            <label for="root_dir">Root Directory:</label>
+            <input type="text" id="root_dir" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+            <label for="starts_with">Starts with:</label>
+            <input type="text" id="starts_with" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+            <label for="ends_with">Ends with:</label>
+            <input type="text" id="ends_with" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+            <label for="partial_name">Partial name:</label>
+            <input type="text" id="partial_name" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+            <label for="min_size">Min size:</label>
+            <input type="number" id="min_size" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+            <label for="max_size">Max size:</label>
+            <input type="number" id="max_size" class="form-control form-control-sm">
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-2">
+            <label for="created_after">Created after:</label>
+            <input type="datetime-local" id="created_after" class="form-control form-control-sm" name="created_after">
+        </div>
+        <div class="col-md-2">
+            <label for="created_before">Created before:</label>
+            <input type="datetime-local" id="created_before" class="form-control form-control-sm" name="created_before">
+        </div>
+        <div class="col-md-2">
+            <label for="extension">Extension:</label>
+            <input type="text" id="extension" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+            <label for="page">Page:</label>
+            <input type="number" id="page" class="form-control form-control-sm" value="1" min="1" onchange="renderPage(this.value)">
+
+        </div>
+        <div class="col-md-2">
+            <div class="btn-group" role="group" aria-label="Basic mixed styles example">
+
+
+<div class="dropdown">
+    <button class="btn btn-warning dropdown-toggle" type="button" id="dropdownRadioButton" data-bs-toggle="dropdown" aria-expanded="false">
+        Sort...
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownRadioButton">
+        <li>
+            <label class="dropdown-item" for="column_path_radio">
+                <input class="form-check-input me-2" type="radio" id="column_path_radio" name="column_radio">
+                Path
+            </label>
+        </li>
+        <li>
+            <label class="dropdown-item" for="column_name_radio">
+                <input class="form-check-input me-2" type="radio" id="column_name_radio" name="column_radio">
+                Name
+            </label>
+        </li>
+        <li>
+            <label class="dropdown-item" for="column_size_radio">
+                <input class="form-check-input me-2" type="radio" id="column_size_radio" name="column_radio" checked="checked">
+                Size
+            </label>
+        </li>
+        <li>
+            <label class="dropdown-item" for="column_created_radio">
+                <input class="form-check-input me-2" type="radio" id="column_created_radio" name="column_radio">
+                Created
+            </label>
+        </li>
+        <li>
+            <label class="dropdown-item" for="column_extension_radio">
+                <input class="form-check-input me-2" type="radio" id="column_extension_radio" name="column_radio">
+                Extension
+            </label>
+        </li>
+    </ul>
+</div>
+
+
+                <button type="button" class="btn btn-success">Right</button>
+
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        Select Columns
+                    </button>
+                    <!-- Dropdown menu -->
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <li><label class="dropdown-item" for="column_path_checkbox"><input type="checkbox" id="column_path_checkbox" class="column-checkbox" checked> Path</label></li>
+                        <li><label class="dropdown-item" for="column_name_checkbox"><input type="checkbox" id="column_name_checkbox" class="column-checkbox" checked> Name</label></li>
+                        <li><label class="dropdown-item" for="column_size_checkbox"><input type="checkbox" id="column_size_checkbox" class="column-checkbox" checked> Size</label></li>
+                        <li><label class="dropdown-item" for="column_created_at_checkbox"><input type="checkbox" id="column_created_at_checkbox" class="column-checkbox" checked> Created At</label></li>
+                        <li><label class="dropdown-item" for="column_permissions_checkbox"><input type="checkbox" id="column_permissions_checkbox" class="column-checkbox" checked> Permissions</label></li>
+                        <li><label class="dropdown-item" for="column_extensions_checkbox"><input type="checkbox" id="column_extensions_checkbox" class="column-checkbox" checked> Extensions</label></li>
+                    </ul>
+                </div>
+
+                <button onclick="searchFiles()" class="btn btn-danger" id="searchStop">Search</button>
+            </div>
+        </div>
+
+        </div>
+
+        <div class="col-md-2">
+            <!-- Przycisk do otwierania dropdowna z checkboxami -->
+
+        </div>
+</div>  <!-- end of container -->
+
+
+
+<table id="statusTable">
+    <thead>
+        <tr id="status-bar-tr">
+        </tr>
+    </thead>
+</table>
+
+
+<table id="dynamicTable" class="table-striped">
+    <thead>
+        <tr>
+            <th id="column_path">Path</th>
+            <th id="column_name">Name</th>
+            <th id="column_size">Size</th>
+            <th id="column_created_at">Created At</th>
+            <th id="column_permissions">Permissions</th>
+            <th id="column_extensions">Extensions</th>
+            <th id="type">Type</th>
+        </tr>
+    </thead>
+    <tbody id="dynamicContent">
+    </tbody>
+</table>
+
+        <div id="gfg" class="modal modal-xl" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content" style="background: #43ab0c">
+                    <div class="modal-header">
+                        <div class="d-flex align-items-center justify-content-start" id="badgesDiv">
+                            <h5 class="modal-title" id="modal-title">
+                                <span class="badge text-bg-warning" id="modal-title-span"></span>
+                            </h5>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="modal-body">
+                        <p>
+                            It is a dialog box/popup window that is
+                            displayed on top of the current page. DAMIAN MĄDRALINSKI TO WAZON I DZBAN
+                        </p>
+                    </div>
+
+                    <div class="modal-body" id="modal-display-data">
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js" ></script>
+
+<script>
+function sendForm() {
+    console.log("sendForm...");
+    var container = document.querySelector('.container-dark'); // Pobierz kontener
+    var inputs = container.querySelectorAll('.form-control'); // Znajdź wszystkie inputy i selecty w kontenerze
+    var link = "{{ url_for('advanced_results_route') }}" + '?'; // Początek linku
+
+    inputs.forEach(function(input) {
+        var paramName = input.id; // Pobierz ID elementu jako nazwę parametru
+        var paramValue = input.value; // Pobierz wartość elementu
+
+        if (paramValue) {
+            link += encodeURIComponent(paramName) + '=' + encodeURIComponent(paramValue) + '&';
+        }
+    });
+
+    let radioButtons = document.querySelectorAll('input[type="radio"]');
+    radioButtons.forEach(function(radio) {
+        if (radio.checked) {
+            link += radio.id + '=1';
+        }
+    });
+
+    if (link.endsWith('&')) {
+        link = link.slice(0, -1);
+    }
+    window.location.href = link;
+}
+
+
+
+
+function rowClicked(row) {
+
+    var file_info = JSON.parse(row.getAttribute("data-json-text"));
+
+    let modal = new bootstrap.Modal(document.getElementById('gfg'));
+    //document.getElementById('modal-title-span').innerHTML = file_info.path;
+
+    let linkedDirs = fullPathToLinkedDirList(file_info.path);
+    let x = "{{ url_for('list_dir_route', server_dir='') }}";
+    let rootTitle = document.getElementById('badgesDiv');
+    rootTitle.innerHTML = "";
+
+    for (let key in linkedDirs) {
+        let h5 = document.createElement("h5");
+        h5.innerHTML = '<a class="badge text-bg-warning" href="' + x + linkedDirs[key] + ' " target="_blank">' + key + '/</a>';
+        rootTitle.appendChild(h5);
+    }
+
+    h5 = document.createElement("h5");
+    h5.innerHTML = '<span class="badge text-bg-danger" href="' + x + file_info.name + ' ">' + file_info.name + '</span>';
+    rootTitle.appendChild(h5);
+
+    let body = document.getElementById('modal-body');
+
+/*<span class="badge rounded-pill bg-primary">Primary</span>
+<span class="badge rounded-pill bg-secondary">Secondary</span>
+<span class="badge rounded-pill bg-success">Success</span>
+<span class="badge rounded-pill bg-danger">Danger</span>
+<span class="badge rounded-pill bg-warning text-dark">Warning</span>
+<span class="badge rounded-pill bg-info text-dark">Info</span>
+<span class="badge rounded-pill bg-light text-dark">Light</span>
+<span class="badge rounded-pill bg-dark">Dark</span>*/
+
+
+    body.innerHTML = "";
+
+    let a = document.createElement("a");
+    a.setAttribute("class", "badge rounded-pill bg-success");
+    a.textContent = 'Download';
+    a.href = "{{ url_for('get_file_route', path='')}}" + file_info.path;
+    a.setAttribute("download", file_info.name);
+    body.appendChild(a);
+
+let disp = document.getElementById('modal-display-data');
+
+    if (file_info.type === 'document' || file_info.type === 'text') {
+        a = document.createElement("a");
+        a.setAttribute("class", "badge rounded-pill bg-info");
+        a.textContent = 'Edit';
+        a.href = "{{ url_for('ace_editor_route', file='')}}" + file_info.path;
+        a.setAttribute("target", "_blank");
+        body.appendChild(a);
+
+        disp.innerHTML = 'ace';
+    }
+    if (file_info.type === 'image') {
+        let img = document.createElement('img');
+        img.setAttribute("src", "{{ url_for('get_file_route', path='')}}" + file_info.path);
+        disp.innerHTML = "";
+        disp.appendChild(img);
+    }
+    if (file_info.type === 'audio') {
+        disp.innerHTML = 'audio';
+    }
+    if (file_info.type === 'video') {
+        disp.innerHTML = 'video';
+    }
+
+    modal.show();
+}
+
+</script>
+
+
+ <!-- script src="{{ url_for('static', filename='advanced_search_form_results.js') }}"></script  -->
+
+
+
+<script>
+    
+    // testing purposes
+    var const_status_text = '';
+    var root_dir = '';
+    var totalPages = 1;
+    var totalFilesFound = 0;
+    var searchThreadStatus = 'ready';
+
+
+
+    var socket = io.connect('/custom_search');
+    var urlParams = new URLSearchParams(window.location.search);
+
+    function hasParam(param) {
+        return urlParams.has(param);
+    }
+    function getParamValue(param) {
+        return hasParam(param) ? urlParams.get(param) : '';
+    }
+    let inputs = document.querySelectorAll('.form-control');
+
+    inputs.forEach(function(input) {
+        var paramName = input.id;
+        var paramValue = getParamValue(paramName);
+
+        if (paramValue!=='') {
+            input.value = paramValue;
+            console.log(paramName+"-->"+paramValue);
+        }
+    });
+
+    let radios = document.querySelectorAll('input[type="radio"]');
+
+    radios.forEach(function(radio){
+        var paramName = radio.id;
+        var paramValue = getParamValue(paramName);
+
+        if (paramValue!=='') {
+            radio.checked = true;
+        }
+    });
+
+
+    function searchFiles() {
+        var formData = {}; // Obiekt przechowujący dane formularza
+        var formInputs = document.querySelectorAll('.form-control');
+
+        formInputs.forEach(function(input) {
+            formData[input.id] = input.value; // Dodaj wartość inputu do obiektu formData
+        });
+
+        // Pobierz wartość strony
+        var page = document.getElementById('page').value;
+
+        let radioButtons = document.querySelectorAll('input[type="radio"]');
+        let sortby = "";
+        radioButtons.forEach(function(radio) {
+            if (radio.checked) {
+                formData['sortby'] = radio.id;
+            }
+        });
+
+        // Wyślij dane do serwera
+        socket.emit('search_files', {
+            root_dir: formData['root_dir'],
+            search_params: formData,
+            page: page,
+        });
+
+
+        searchThreadStatus = 'working';
+        let btn = document.getElementById("searchStop");
+        btn.textContent = 'STOP';
+        btn.setAttribute('onclick', 'stopThread()');
+    }
+
+    searchFiles();
+
+
+    // checkboxes for showing/hiding columns
+    var checkboxes = document.querySelectorAll('.column-checkbox');
+    checkboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            var columnId = checkbox.id.replace('_checkbox', '');
+            var column = document.getElementById(columnId);
+
+            if (checkbox.checked) {
+                column.style.display = '';
+            } else {
+                column.style.display = 'none';
+            }
+        });
+    });
+
+
+
+    // split /full/path/to/dir into buttons that sends user to view of dir
+    function fullPathToLinkedDirList(path) {
+        let dirs = path.split('/');
+        let linkedDirs = {};
+
+        for (let i=0;  i<dirs.length - 1;  ++i) {
+            linkedDirs[dirs[i]] = dirs.slice(0,i+1).join("/");
+        }
+        return linkedDirs;
+    }
+
+
+    function setStatus() {
+        var txt = const_status_text;
+        for (var i=0;  i<arguments.length;  ++i) {
+            txt += arguments[i] + " ";
+        }
+        document.getElementById('status-bar-tr').textContent = txt;
+        console.log(txt);
+        //alert("setStatus:" + txt);
+    }
+
+
+    socket.on('search_results', function(data) {
+        totalPages = data['totalLen'];
+        renderPage(1);
+
+        if (data['is_finished'] === true) {
+            searchThreadStatus = 'finished';
+        }
+    });
+
+
+
+    socket.on('next_hundred_found', function (data) {
+        totalPages = data.found;
+        setStatus("pages: " + totalPages + ", total files parsed: " + data.iters + "   ");
+    });
+
+
+
+    socket.on('show_sorted', function(data) {
+        setStatus("show_sorted");
+        document.getElementById('page').value = 1;
+        renderPage(1);
+    });
+
+
+
+
+    function renderTable(data) {
+        // setStatus('renderTable now');
+        var tbody = document.getElementById('dynamicContent');
+        tbody.innerHTML = '';
+
+        let trim_by = document.getElementById('root_dir').value.length;
+
+        function _trim(text) {
+            text = text.slice(trim_by);
+            let a = '';
+            let lsi = text.lastIndexOf('/');
+            if (lsi !== -1) {
+                a = text.substring(0, lsi + 1);
+            } else {
+                a = text;
+            }
+            if (a.length > 30) {
+                return '...' + text.slice(-30);
+            } else {
+                return text;
+            }
+        }
+
+
+        data.results.forEach(function(result) {
+            var row = document.createElement('tr');
+
+            Object.keys(result).forEach(function(key, index) {
+                var cell = document.createElement('td');
+
+                if (key === 'path') {
+                    let t = _trim(result[key]);
+                    cell.textContent = t;
+                    cell.setAttribute('data-trim-text', t);
+                    cell.setAttribute('data-original-text', result[key]); // Zapisanie oryginalnego tekstu w atrybucie
+                    cell.addEventListener('mouseover', function() {
+                        this.textContent = this.getAttribute('data-original-text'); // Wyświetlenie oryginalnego tekstu przy najechaniu myszą
+                    });
+                    cell.addEventListener('mouseout', function() {
+                        this.textContent = this.getAttribute('data-trim-text');
+                    });
+                } else if (key === 'created_at') {
+                    cell.textContent = new Date(result[key]).toLocaleString();
+                } else if (key === 'permissions') {
+                    cell.textContent = translatePermissions(result[key]);
+                } else {
+                    cell.textContent = result[key];
+                }
+                row.appendChild(cell);
+            });
+
+            row.setAttribute('data-json-text', JSON.stringify(result));
+            row.addEventListener('dblclick', function() { rowClicked(this); }); // Obsługa podwójnego kliknięcia na wiersz
+            tbody.appendChild(row);
+        });
+
+
+        var columnCheckboxes = document.querySelectorAll('.column-checkbox');
+
+        columnCheckboxes.forEach(function(checkbox, index) {
+            checkbox.addEventListener('change', function() {
+                var columnIndex = index;
+                var cells = tbody.querySelectorAll('tr td:nth-child(' + (columnIndex + 1) + ')');
+
+                if (checkbox.checked) {
+                    cells.forEach(function(cell) {
+                        cell.style.display = '';
+                    });
+                } else {
+                    cells.forEach(function(cell) {
+                        cell.style.display = 'none';
+                    });
+                }
+            });
+        });
+    }
+
+
+
+
+
+    socket.on('render_new_page', function(data){
+        // setStatus('socket.on render_new_page', JSON.stringify(data));
+        renderTable(data);
+    });
+
+
+
+    socket.on('search_finished', function(data) {
+
+        setStatus("finished");
+
+        if (data.killed) {
+            const_status_text = "Searching thread killed. ";
+        } else {
+            totalPages = data.pages;
+            setStatus("Searching finished. Found", data.len, " files with ", data.iters, " iterations, pages count:", data.pages, "pages within time in ms: ", data.time);
+
+            searchThreadStatus = 'ready';
+            let btn = document.getElementById('searchStop');
+            btn.textContent = 'Search';
+            btn.setAttribute("onclick", "function(){ searchFiles(); }");
+        }
+    });
+
+
+
+
+    function stopThread() {
+        searchThreadStatus = 'ready';
+        let btn = document.getElementById("searchStop");
+        btn.textContent = 'Search';
+        btn.setAttribute('onclick', 'sendForm()');
+        socket.emit('stop_thread', {});
+    }
+
+
+
+    function renderPage(value) {
+        console.log("renderPage(value):  totalPages: " + totalPages);
+        if (value <= totalPages) {
+            socket.emit('get_page', {page: value, root_dir:root_dir});
+        }
+    }
+
+
+
+    var headers = document.querySelectorAll('th[id^="column_"]');
+    headers.forEach(function(header) {
+        header.addEventListener('click', function() {
+            var columnId = this.id;
+            sortTable(columnId);
+        });
+    });
+
+
+
+    var sortDirection = {}; // Obiekt przechowujący kierunek sortowania dla każdej kolumny
+
+
+
+
+
+    function sortTable(columnId) {
+
+        if (document.getElementById('searchStop').textContent !== 'Search') {
+            console.log("wait i am still working");
+        }
+
+        // Ustawienie początkowego kierunku sortowania na rosnący, jeśli nie został jeszcze ustawiony dla tej kolumny
+        if (!sortDirection[columnId]) {
+            sortDirection[columnId] = 'asc';
+        } else {
+            // Odwróć kierunek sortowania po kolejnym kliknięciu w tę samą kolumnę
+            sortDirection[columnId] = sortDirection[columnId] === 'asc' ? 'desc' : 'asc';
+        }
+        console.log("sorting request");
+        socket.emit('sort_and_show', {'column': columnId, 'order': sortDirection[columnId]});
+    }
+
+
+    function sortTableOnThisPage(columnId) {
+
+        var table, rows, switching, i, x, y, shouldSwitch;
+        table = document.getElementById("dynamicTable");
+        switching = true;
+
+        // Ustawienie początkowego kierunku sortowania na rosnący, jeśli nie został jeszcze ustawiony dla tej kolumny
+        if (!sortDirection[columnId]) {
+            sortDirection[columnId] = 'asc';
+        } else {
+            // Odwróć kierunek sortowania po kolejnym kliknięciu w tę samą kolumnę
+            sortDirection[columnId] = sortDirection[columnId] === 'asc' ? 'desc' : 'asc';
+        }
+
+        while (switching) {
+            switching = false;
+            rows = table.rows;
+
+            for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("TD")[getColumnIndex(columnId)];
+                y = rows[i + 1].getElementsByTagName("TD")[getColumnIndex(columnId)];
+
+                var comparison;
+                if (columnId.toLowerCase() === 'column_size') {
+                    comparison = compareNumberValues(x.innerHTML.toLowerCase(), y.innerHTML.toLowerCase());
+                } else {
+                    comparison = compareValues(x.innerHTML.toLowerCase(), y.innerHTML.toLowerCase());
+                }
+
+                // Sprawdź, czy należy zamienić pozycje wierszy
+                if ((sortDirection[columnId] === 'asc' && comparison > 0) ||
+                    (sortDirection[columnId] === 'desc' && comparison < 0)) {
+                    shouldSwitch = true;
+                    break;
+                }
+            }
+
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+            }
+        }
+    }
+
+    // Funkcja pomocnicza do porównywania wartości
+    function compareValues(a, b) {
+        if (a === b) {
+            return 0;
+        }
+        return a > b ? 1 : -1;
+    }
+
+    // Funkcja pomocnicza do porównywania liczb
+    function compareNumberValues(a, b) {
+        return parseFloat(a) - parseFloat(b);
+    }
+
+    function getColumnIndex(columnId) {
+        var headers = document.querySelectorAll('th[id^="column_"]');
+        for (var i = 0; i < headers.length; i++) {
+            if (headers[i].id === columnId) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+
+
+    function translatePermissions(st_mode) {
+        const S_IRUSR = 0o400; // 0400 -> Prawo odczytu dla właściciela
+        const S_IWUSR = 0o200; // 0200 -> Prawo zapisu dla właściciela
+        const S_IXUSR = 0o100; // 0100 -> Prawo wykonania dla właściciela
+        const S_IRGRP = 0o40;  // 0040 -> Prawo odczytu dla grupy
+        const S_IWGRP = 0o20;  // 0020 -> Prawo zapisu dla grupy
+        const S_IXGRP = 0o10;  // 0010 -> Prawo wykonania dla grupy
+        const S_IROTH = 0o4;   // 0004 -> Prawo odczytu dla innych
+        const S_IWOTH = 0o2;   // 0002 -> Prawo zapisu dla innych
+        const S_IXOTH = 0o1;   // 0001 -> Prawo wykonania dla innych
+
+        let permissions = '';
+
+        // Prawa dostępu dla właściciela
+        if (st_mode & S_IRUSR) permissions += 'r';
+        else permissions += '-';
+        if (st_mode & S_IWUSR) permissions += 'w';
+        else permissions += '-';
+        if (st_mode & S_IXUSR) permissions += 'x';
+        else permissions += '-';
+
+        // Prawa dostępu dla grupy
+        if (st_mode & S_IRGRP) permissions += 'r';
+        else permissions += '-';
+        if (st_mode & S_IWGRP) permissions += 'w';
+        else permissions += '-';
+        if (st_mode & S_IXGRP) permissions += 'x';
+        else permissions += '-';
+
+        // Prawa dostępu dla innych
+        if (st_mode & S_IROTH) permissions += 'r';
+        else permissions += '-';
+        if (st_mode & S_IWOTH) permissions += 'w';
+        else permissions += '-';
+        if (st_mode & S_IXOTH) permissions += 'x';
+        else permissions += '-';
+
+        return permissions;
+    }
+
+    /* Przykład użycia
+    var st_mode = 0o755; // np. wynik z stat_info.st_mode
+    var permissions = translatePermissions("33206");
+    console.log(permissions); // Wyświetli "rwxr-xr-x"   */
+
+//});
+</script>
+
+
+</body>
+</html>

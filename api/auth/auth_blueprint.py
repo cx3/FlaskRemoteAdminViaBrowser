@@ -4,7 +4,7 @@ from functools import wraps
 from flask import Blueprint, render_template, request, session, url_for, redirect
 import hashlib
 
-bp = Blueprint('auth', __file__)
+bp = Blueprint('auth', __file__, template_folder='api/auth/templates')
 
 
 users = {
@@ -29,25 +29,28 @@ def auth_login_route():
         password = request.json.get('password')
         provided_csrf_token = request.json.get('csrf_token')
 
-        print(username, password, provided_csrf_token)
-
         if username in users and users[username] == password:
             if not is_valid_csrf_token(provided_csrf_token):
                 return render_template('login.html', error_message='Invalid CSRF Token')
 
             session['username'] = username
             session['remote_addr'] = request.remote_addr
+
+            print(f"session... username {session['username']}  {session['remote_addr']}  ")
+
             return redirect(url_for('main_route'))
         else:
-            return render_template('login.html', error='Nieprawidłowa nazwa użytkownika lub hasło')
+            return render_template('login.html', error='Incorrect username or password')
 
 
 def is_user_authenticated(ip):
     # Sprawdź, czy adres IP użytkownika znajduje się na liście zaufanych adresów IP
-    trusted_ips = ['192.168.1.6']  # Dodaj inne zaufane adresy IP według potrzeb
+    trusted_ips = ['192.168.1.6', '192.168.1.10']  # Dodaj inne zaufane adresy IP według potrzeb
 
     if ip in trusted_ips:
+        print('if ip in trusted ips')
         if 'username' in session:
+            print('if username in session')
             return True
     return False
 
@@ -57,7 +60,6 @@ def login_required(view):
     @wraps(view)
     def decorated(*args, **kwargs):
         if not is_user_authenticated(request.remote_addr):
-            # Jeśli użytkownik nie jest zalogowany, przekieruj go na stronę logowania
             return redirect(url_for('auth.auth_login_route'))
         return view(*args, **kwargs)
     return decorated

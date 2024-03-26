@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>File Explorer</title>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
+</head>
+<body>
+
+<table id="fileTable" class="display">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Size</th>
+            <th>Created</th>
+            <th>Extension</th>
+            <th>Type</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Dynamicznie generowane wiersze z danymi -->
+    </tbody>
+</table>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+<script>
+$(document).ready(function() {
+    $('#fileTable').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "ajax": {
+            "url": "/get_files", // Ścieżka do serwera z danymi
+            "type": "POST"
+        },
+        "columns": [
+            { "data": "name" },
+            { "data": "size" },
+            { "data": "created" },
+            { "data": "extension" },
+            { "data": "type" }
+        ],
+        "order": [[0, "asc"]] // Domyślne sortowanie po nazwie
+    });
+});
+</script>
+
+</body>
+</html>

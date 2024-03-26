@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Search</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .container-dark {
+            background-color: #333;
+            color: #fff;
+        }
+
+        .container-dark input.form-control {
+            background-color: #222;
+            color: #fff;
+        }
+
+        .container-dark input.form-control:hover {
+            background-color: #555;
+            color: #ffcc00;
+        }
+
+        .container-dark label {
+            color: #ff0000; /* czerwony kolor dla labela */
+        }
+
+        .container-dark input[type="text"],
+        .container-dark input[type="number"],
+        .container-dark input[type="datetime-local"] {
+            color: #00ff00; /* zielony kolor dla tekstu w inputach typu text, number, datetime-local */
+        }
+
+        .table-header {
+            color: yellow; /* Kolor nagłówka */
+        }
+
+        /*body {
+            background-color: #222;
+            color: #fff;
+        }*/
+
+        .div-table {
+            display: table;
+            width: 100%;
+        }
+
+        .div-table-row {
+            display: table-row;
+        }
+
+        .div-table-cell {
+            display: table-cell;
+            padding: 8px;
+        }
+
+        .div-table-row:hover {
+            background-color: #333;
+        }
+
+        .div-table-cell:hover {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body style="background: #050d01;">
+
+<div class="container container-dark">
+    <div class="row mt-2">
+        <div class="col-md-2">
+            <label for="root_dir">Root Directory:</label>
+            <input type="text" id="root_dir" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+            <label for="starts_with">Starts with:</label>
+            <input type="text" id="starts_with" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+            <label for="ends_with">Ends with:</label>
+            <input type="text" id="ends_with" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+            <label for="partial_name">Partial name:</label>
+            <input type="text" id="partial_name" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+            <label for="min_size">Min size:</label>
+            <input type="number" id="min_size" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+            <label for="max_size">Max size:</label>
+            <input type="number" id="max_size" class="form-control form-control-sm">
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-2">
+            <label for="created_after">Created after:</label>
+            <input type="datetime-local" id="created_after" class="form-control form-control-sm" name="created_after">
+        </div>
+        <div class="col-md-2">
+            <label for="created_before">Created before:</label>
+            <input type="datetime-local" id="created_before" class="form-control form-control-sm" name="created_before">
+        </div>
+        <div class="col-md-2">
+            <label for="extension">Extension:</label>
+            <input type="text" id="extension" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+
+        </div>
+    </div>
+
+    <div class="row mt-2" id="resultViewControl">
+        <div class="col-md-8">
+            <label for="page">Page:</label>
+            <input type="number" id="page" class="form-control form-control-sm" value="1" min="1" onchange="renderPage(this.value)">
+        </div>
+        <div class="col-md-4">
+            <label for="status">Status:</label>
+            <input type="text" id="status" class="form-control form-control-sm" readonly>
+        </div>
+    </div>
+
+    <div class="row mt-2">
+        <button onclick="searchFiles()" class="btn btn-danger">Search</button>
+        <div class="row mt-5">
+            <div class="col">
+                <div id="results"></div>
+            </div>
+        </div>
+    </div>
+</div>  <!-- end of container -->
+
+<div class="div-table">
+    <div class="div-table-row div-table-header">
+        <div class="div-table-cell">Path</div>
+        <div class="div-table-cell">Name</div>
+        <div class="div-table-cell">Size</div>
+        <div class="div-table-cell">Created At</div>
+        <div class="div-table-cell">Permissions</div>
+        <div class="div-table-cell">Extensions</div>
+    </div>
+    <div id="dynamicContent">
+        <!-- Add more rows here -->
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js" ></script>
+
+<script>
+    var root_dir = '';
+
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+    // Function to handle search results
+    socket.on('search_results', function(data) {
+        renderPage(1);
+    });
+
+    // Function to send search request
+    function searchFiles() {
+        var rootDir = document.getElementById('root_dir').value;
+        root_dir = rootDir;
+
+        var page = document.getElementById('page').value;
+        var searchParams = {
+            'root_dir': document.getElementById('root_dir').value,
+            'starts_with': document.getElementById('starts_with').value,
+            'ends_with': document.getElementById('ends_with').value,
+            'partial_name': document.getElementById('partial_name').value,
+            'min_size': document.getElementById('min_size').value,
+            'max_size': document.getElementById('max_size').value,
+            'created_after': document.getElementById('created_after').value,
+            'created_before': document.getElementById('created_before').value,
+            'extension': document.getElementById('extension').value
+        };
+
+        socket.emit('search_files', {
+            root_dir: rootDir,
+            search_params: searchParams,
+            page: page
+        });
+    }
+
+    // Update pagination
+    var totalPages = 1;
+
+    socket.on('next_hundred_found', function (data) {
+        totalPages = data.found;
+        document.getElementById('status').value ="pages: " + data.found + ", total files parsed: " + data.iters;
+    });
+
+    function renderPage(value) {
+        if (value <= totalPages) {
+            socket.emit('get_page', {page: value, root_dir: root_dir});
+        }
+    }
+
+    socket.on('render_new_page', function(data) {
+        var dynamicContent = document.getElementById('dynamicContent');
+        dynamicContent.innerHTML = ''; // Clear previous results
+
+        // Create rows with data in the table
+        data.results.forEach(function(result) {
+            var row = document.createElement('div');
+            row.classList.add('div-table-row');
+            Object.values(result).forEach(function(value) {
+                var cell = document.createElement('div');
+                cell.classList.add('div-table-cell');
+                cell.textContent = value;
+                row.appendChild(cell);
+            });
+            dynamicContent.appendChild(row);
+        });
+    });
+
+    // Set params from URL
+    document.addEventListener('DOMContentLoaded', function() {
+        var urlParams = new URLSearchParams(window.location.search);
+
+        function hasParam(param) {
+            return urlParams.has(param);
+        }
+
+        function getParamValue(param) {
+            return hasParam(param) ? urlParams.get(param) : '';
+        }
+
+        var inputs = document.querySelectorAll('.container-dark input, .container-dark select');
+
+        inputs.forEach(function(input) {
+            var paramName = input.id;
+            var paramValue = getParamValue(paramName);
+            input.value = paramValue;
+        });
+
+        searchFiles();
+    });
+</script>
+
+</body>
+</html>
+

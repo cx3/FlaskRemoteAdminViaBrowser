@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    background-color: black;
+    color: yellow;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+div {
+    background-color: black;
+    padding: 20px;
+    width: 80%; /* Możesz dostosować szerokość diva do swoich potrzeb */
+    max-width: 400px; /* Ograniczenie maksymalnej szerokości dla lepszej czytelności na urządzeniach o dużej rozdzielczości */
+}
+
+label {
+    color: black;
+    background-color: yellow; /* Dodanie tła dla label */
+    padding: 5px; /* Dodanie wewnętrznego marginesu dla label */
+}
+
+input[type="text"], input[type="password"] {
+    color: yellow;
+    background-color: black;
+    margin-bottom: 10px;
+    padding: 5px;
+    width: 100%; /* Rozciągnij elementy input na całą szerokość diva */
+    border: 1px solid white; /* Dodanie białej ramki do inputów */
+}
+
+input[type="submit"] {
+    background-color: yellow;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    width: 100%;
+}
+
+input[type="submit"]:hover {
+    background-color: green;
+    color: red;
+}
+
+p {
+    margin: 0;
+}
+
+@media only screen and (min-width: 768px) {
+    body {
+        justify-content: flex-end;
+        align-items: flex-end;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <div>
+        {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+        <h1>Login</h1>
+        <p>
+            <label for="username">User:</label>
+            <input type="text" id="username" name="username" value="admin">
+        </p>
+        <p>
+            <label for="password">Pass:</label>
+            <input type="password" id="password" name="password" value="admin">
+            <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token }}">
+        </p>
+        <input type="submit" value="Zaloguj" onclick="post()">
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script>
+
+function post() {
+    var password = document.getElementById("password").value;
+    for (let i=1;  i<358;  ++i) {
+        password  = CryptoJS.SHA512(password).toString(CryptoJS.enc.Hex);
+    }
+
+    var xhr = new XMLHttpRequest();
+    var url = window.location.href;
+    xhr.open("POST", url, true);
+
+    xhr.setRequestHeader("Content-Type", "application/json");
+
+    var data = JSON.stringify({
+        username: document.getElementById('username').value,
+        password: password,
+        csrf_token: document.getElementById('csrf_token').value
+    });
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                window.location.href = '/';
+            } else {
+                alert('Błąd: ' + xhr.status);
+            }
+        }
+    };
+    xhr.send(data);
+}
+</script>
+
+</body>
+</html>

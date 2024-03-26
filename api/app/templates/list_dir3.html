@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Server File Manager: {{ server_dir }}</title>
+
+    <!--
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+
+ <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+  -->
+
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+
+        /* Przykładowe niestandardowe style CSS */
+    .input-group {
+        margin-bottom: 10px; /* Możesz dostosować wartość według potrzeb */
+    }
+
+
+.highlighted-row {
+    background-color: #34ebd5;
+}
+
+input {
+    background-color: #031f03;
+}
+
+label, input, p {
+    color: lightgray;
+}
+
+
+.form-group {
+    background-color: #031f03;
+}
+
+.form-control {
+    background-color: #223657;
+    color: #33de0d;
+}
+
+.modal-body .form-group {
+                        margin-bottom: 5px; /* Możesz dostosować wartość według potrzeb */
+                    }
+
+.file-action-bar {
+    display: flex;
+    flex-direction: row-reverse; /* Ustawia elementy od prawej do lewej */
+    justify-content: flex-start; /* Rozpoczyna układanie elementów od lewej strony */
+}
+
+
+    .action-btn {
+        padding: 5px;
+        margin: 5px;
+        border: none;
+        cursor: pointer;
+        font-size: 15px;
+    }
+
+    .action-btn i {
+        margin-right: 5px;
+    }
+
+    .copy { color: #007bff; }
+    .cut { color: #dc3545; }
+    .paste { color: #28a745; }
+    .upload { color: #ffc107; }
+    .zip { color: #6c757d; }
+
+</style>
+
+
+</head>
+<body style="background-color:#4E494D">
+
+<div class="row">
+    <div class="col">
+        <nav aria-label="breadcrumb" ondblclick="alert('dopisac: zmien na input pozwalajac na przejscie do sciezki')">
+            <ol class="breadcrumb">
+                {% for folder in current_path %}
+                    <li class="breadcrumb-item">
+                        <a href="{{ url_for('list_dir_route', server_dir='/'.join(current_path[:loop.index])) }}">{{ folder }}</a>
+                    </li>
+                {% endfor %}
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="d-inline-block">
+    <label for="nameFilter">Name:</label>
+    <input type="text" id="nameFilter">
+
+    <label for="sizeFilterFrom">Size From:</label>
+    <input type="text" id="sizeFilterFrom">
+
+    <label for="sizeFilterTo">Size To:</label>
+    <input type="text" id="sizeFilterTo">
+
+    <label for="createdFilter">Created:</label>
+    <input type="text" id="createdFilter">
+
+    <label for="extensionFilter">Extension:</label>
+    <input type="text" id="extensionFilter">
+
+    <label for="typeFilter">Type:</label>
+    <input type="text" id="typeFilter">
+
+    <button class="action-btn copy"><i class="fa fa-copy"></i>Copy</button>
+    <button class="action-btn cut"><i class="fa fa-cut"></i>Cut</button>
+    <button class="action-btn paste"><i class="fa fa-paste"></i>Paste</button>
+    <button class="action-btn upload"><i class="fa fa-upload"></i>Upload</button>
+    <button class="action-btn zip"><i class="fa fa-file-archive-o"></i>Zip</button>
+    <button class="action-btn search"><i class="fa fa-magnifying-glass">Search</i></button>
+</div>
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-3">
+            <div class="panel panel-default">
+                <div><p>Directories</p></div>
+                <div id="dirTree">
+                    {% set item = content['dirs'][0] %}
+                    <a class="btn btn-primary d-block mb-2" href="#" role="button" id="{{ server_dir }}" data-depth=1 > {{ server_dir }} </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-9">
+            <div class="panel panel-default">
+                <div class="">Content</div>
+                <div class="" id="filesDirContent">
+
+<table id="fileTable" class="table table-responsive table-dark" style="width: 100%;">
+    <thead>
+        <tr>
+            <th scope="col"><input type="checkbox" class="select-all" id="selectAll">Select</th>
+            <th scope="col" class="sort-header" data-sort="name">Name</th>
+            <th scope="col" class="sort-header" data-sort="size">Size</th>
+            <th scope="col" class="sort-header" data-sort="created">Created</th>
+            <th scope="col" class="sort-header" data-sort="extension">Extension</th>
+            <th scope="col" class="sort-header" data-sort="type">Type</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for file in content['files'] %}
+        <tr class="select-row">
+            <td><input type="checkbox" class="select-row" id="file:{{ file.full_path }}"></td>
+            <td>{{ file.name }}</td>
+            <td>{{ file.size }}</td>
+            <td>{{ file.created_at }}</td>
+            <td>
+                {% if '.' in file.name %}
+                    {{ file.name.split('.')[-1] }}
+                {% else %}
+                    {{ file.name }}
+                {% endif %}
+            </td>
+            <td>{{ file.type }}</td>
+
+            <td>
+                {% if file.type == 'text' or file.type == 'document' %}
+                    <a class="fa-solid fa-file-pen" href="{{ url_for('ace_editor_route', file=file.full_path) }}"></a>
+                {% elif file.type == 'audio' %}
+                    <a class="fa-solid fa-file-audio" href="{{ url_for('audio_route', file=file.full_path) }}"></a>
+                {% elif file.type == 'video' %}
+                    <a class="fa-solid fa-video" href="{{ url_for('video_route', file=file.full_path) }}"></a>
+                {% elif file.type == 'image' %}
+                    <a class="fa-solid fa-image" href="{{ url_for('image_route', file=file.full_path) }}"></a>
+                {% endif %}
+
+                <a class="fa-solid fa-download" href="{{ url_for('get_file_route', path=file.full_path) }}" download></a>
+
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var headers = document.querySelectorAll('.sort-header');
+    var selectAllCheckbox = document.getElementById('selectAll');
+    var rowCheckboxes = document.querySelectorAll('.row-checkbox');
+
+    headers.forEach(function(header) {
+        header.addEventListener('click', function() {
+            var column = this.dataset.sort;
+            var sortOrder = this.dataset.sortOrder || 'asc';
+
+            if (sortOrder === 'asc') {
+                this.dataset.sortOrder = 'desc';
+            } else {
+                this.dataset.sortOrder = 'asc';
+            }
+
+            var rows = Array.from(document.querySelectorAll('tbody tr'));
+            rows.sort(function(row1, row2) {
+                var gci = getColumnIndex(column);
+
+                console.log("gci="+gci);
+
+                var value1 = row1.querySelector('td:nth-child(' + (gci + 1) + ')').textContent;
+                var value2 = row2.querySelector('td:nth-child(' + (gci + 1) + ')').textContent;
+
+                /*if (sortOrder === 'asc') {
+                    return value1.localeCompare(value2);
+                } else {
+                    return value2.localeCompare(value1);
+                }*/
+
+                // Modified to compare as numbers
+                if (column === 'size') {
+                    value1 = parseFloat(value1);
+                    value2 = parseFloat(value2);
+                }
+
+                if (sortOrder === 'asc') {
+                    return value1 > value2 ? 1 : -1;
+                } else {
+                    return value1 < value2 ? 1 : -1;
+                }
+
+            });
+
+            var tbody = document.querySelector('tbody');
+            rows.forEach(function(row) {
+                tbody.appendChild(row);
+            });
+        });
+    });
+
+    selectAllCheckbox.addEventListener('change', function() {
+        rowCheckboxes.forEach(function(checkbox) {
+            checkbox.checked = selectAllCheckbox.checked;
+        });
+    });
+
+    function getColumnIndex(column) {
+        var index = 0;
+        document.querySelectorAll('thead th').forEach(function(th, i) {
+            if (th.dataset.sort === column) {
+                index = i;
+            }
+        });
+        return index;
+    }
+});
+</script>
+
+
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    var nameFilterInput = document.getElementById('nameFilter');
+    var sizeFilterFromInput = document.getElementById('sizeFilterFrom');
+    var sizeFilterToInput = document.getElementById('sizeFilterTo');
+    var createdFilterInput = document.getElementById('createdFilter');
+    var extensionFilterInput = document.getElementById('extensionFilter');
+    var typeFilterInput = document.getElementById('typeFilter');
+
+    nameFilterInput.addEventListener('input', applyFilters);
+    sizeFilterFromInput.addEventListener('input', applyFilters);
+    sizeFilterToInput.addEventListener('input', applyFilters);
+    createdFilterInput.addEventListener('input', applyFilters);
+    extensionFilterInput.addEventListener('input', applyFilters);
+    typeFilterInput.addEventListener('input', applyFilters);
+
+    function applyFilters() {
+        var nameFilter = nameFilterInput.value.toLowerCase();
+        var sizeFilterFrom = parseInt(sizeFilterFromInput.value.toLowerCase());
+        var sizeFilterTo = parseInt(sizeFilterToInput.value.toLowerCase());
+        var createdFilter = createdFilterInput.value.toLowerCase();
+        var extensionFilter = extensionFilterInput.value.toLowerCase();
+        var typeFilter = typeFilterInput.value.toLowerCase();
+
+        var rows = document.querySelectorAll('#fileTable tbody tr');
+
+        rows.forEach(function(row) {
+            var name = row.cells[1].textContent.toLowerCase();
+            var size = parseInt(row.cells[2].textContent.toLowerCase());
+            var created = row.cells[3].textContent.toLowerCase();
+            var extension = row.cells[4].textContent.toLowerCase();
+            var type = row.cells[5].textContent.toLowerCase();
+
+            var nameMatch = name.includes(nameFilter);
+            var sizeMatchFrom = size >= sizeFilterFrom || !sizeFilterFrom;
+            var sizeMatchTo = size <= sizeFilterTo || !sizeFilterTo;
+            var createdMatch = created.includes(createdFilter);
+            var extensionMatch = extension.includes(extensionFilter);
+            var typeMatch = type.includes(typeFilter);
+
+            if (nameMatch && sizeMatchFrom && sizeMatchTo && createdMatch && extensionMatch && typeMatch) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+});
+
+
+var selected = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Pobierz element checkboxa, który będzie służył do zaznaczania wszystkich
+    var selectAllCheckbox = document.getElementById('selectAll');
+
+    // Dodaj nasłuchiwanie zdarzenia kliknięcia dla checkboxa "Select All"
+    selectAllCheckbox.addEventListener('change', function() {
+        // Pobierz wszystkie checkboxy wierszy w tabeli
+        checkboxes = document.querySelectorAll('#fileTable tbody tr .select-row');
+
+        // Iteruj przez każdy checkbox i ustaw jego stan na zaznaczony lub odznaczony
+        checkboxes.forEach(function(checkbox) {
+            checkbox.checked = selectAllCheckbox.checked;
+            selected.push(checkbox.id);
+        });
+        //alert(selected.toString());
+    });
+});
+</script>
+
+
+<script>
+
+    function getBtnClassBy(depth) {
+        opts = ['primary', 'secondary', 'success', 'danger', 'warning', 'info'];
+
+        if (depth < 0) {
+            depth = 0;
+        }
+        if (depth > opts.length - 1) {
+            depth = depth % opts.length;
+        }
+        return "btn-" + opts[depth];
+    }
+
+
+    function renderChildren(x) {
+        var id;
+        var clicked;
+        if (x == null || x === null) {
+            //console.log("if-else: renderChildren x passed null");
+            id = "{{ server_dir }}";
+            clicked = document.getElementById(id);
+        } else {
+            //console.log("renderChildren else section. x=" + x);
+            clicked = x;
+            id = x.id;
+            //console.log("in section else.  clicked:" + clicked + "#### id="+id);
+        }
+        //console.log("renderChildren after if-else:  clicked=" +clicked+ " #########  id=" + id);
+        const current_depth = parseInt(clicked.getAttribute("data-depth"));
+
+                $.ajax({
+                    url: "/get_folders", // URL to get sub-folders for a folder
+                    method: "POST",
+                    data: { folder_id : id },
+
+                    success: function(data) {
+                        let dirs = data.dirs;
+
+                        for (var i=0;  i<dirs.length;  ++i) {
+                            var now = dirs[i];
+                        //console.log("fetched: " + now.full_path)
+
+                            let e = document.createElement("a");
+                            e.setAttribute("class", "btn " + getBtnClassBy(current_depth + 1) + " d-block mb-2");
+                            e.setAttribute("role", "button");
+                            e.setAttribute("href", "#");
+                        //console.log("new_id:" + now.full_path);
+                            e.setAttribute("id", now.full_path);
+                            e.setAttribute("data-depth", parseInt(current_depth + 1));
+                            e.setAttribute("onclick", "renderChildren(this)");
+                            e.text = now.name;
+
+                            let browseDirectory = document.createElement("a");
+                            browseDirectory.setAttribute("href", "/list_dir?server_dir=" + now.full_path);
+                            browseDirectory.text = ">";
+                            browseDirectory.setAttribute("class", "fa fa-arrows");
+
+                            e.append(browseDirectory);
+
+                            clicked.removeAttribute("onclick");
+
+                            if (clicked.parentNode == null) {
+                                clicked.append(e);
+                            } else {
+                                clicked.parentNode.insertBefore(e, clicked.nextSibling);
+                                clicked.append(e);
+                            }
+
+                            if (i == dirs.length-1 || i === dirs.length - 1) {
+                                e.focus();
+                                e.scrollIntoView();
+                            }
+                        } //for
+                    }, //success
+                    error: function(xhr, status, error) {
+                        console.error("Error loading tree: " + error);
+                    }
+                }); //ajax
+    }
+
+
+    function browseDirectory(x) {
+        window.location.href = '/list_dir?server_dir=' + x.id;
+    }
+
+
+    function renderDirs() {
+        /*let tmp = document.createElement("a");
+        tmp.setAttribute("id", "{{ server_dir }}");
+        tmp.setAttribute("data-depth", 0);
+        tmp.setAttribute("visible", false);
+
+        document.getElementById("dirTree").append(tmp);*/
+        renderChildren(null);
+    }
+
+var renderedInit = false;
+function renderInit() {
+    if (renderedInit === false) {
+        var v = document.getElementById("{{ server_dir }}");
+        document.getElementById('dirTree').append(v);
+        renderDirs();
+        var v = document.getElementById("{{ server_dir }}");
+        //v.remove();
+        renderedInit = true;
+    }
+}
+renderInit();
+</script>
+
+
+
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload File</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="fileInput">
+                    <label class="custom-file-label" for="fileInput">Choose file</label>
+                </div>
+                <div class="progress mt-3" style="display: none;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="uploadSelectedFilesButton">Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Search Modal -->
+<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="background-color: #0d3305">
+            <div class="modal-header">
+                <h5 class="modal-title" id="searchModalLabel" style="color: #bbc412">Search files</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="serverDir">Directory:</label>
+                    <input type="text" id="serverDir" class="form-control" placeholder="Server directory" value="{{ server_dir }}">
+                </div>
+                <div class="form-group">
+                    <label for="searchInput">Partial filename:</label>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search files">
+                </div>
+                <div class="form-group">
+                    <label for="dateFrom">Date from:</label>
+                    <input type="date" id="dateFrom" class="form-control" placeholder="From">
+                </div>
+                <div class="form-group">
+                    <label for="dateTo">Date to:</label>
+                    <input type="date" id="dateTo" class="form-control" placeholder="To">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" onclick="advancedSearch()">Advanced Search</button>
+                <button class="btn btn-primary" type="button" id="searchButton" onclick="showSearchResults()">Search</button>
+
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> -->
+<script>
+
+function showUploadModal() {
+    //$("#uploadModal").modal('show');
+
+    window.$('#uploadModal').modal();
+}
+
+
+function copyAction() {
+    selected = [];
+    for (var chb of document.querySelectorAll('input[class="select-row"]:checked')) {
+         selected.push(chb.getAttribute("id").replace("file:", ""));
+    }
+    if (selected.length == 0) {
+        alert("No files selected to copy...");
+    } else {
+        //alert("copyAction setSession");
+        sessionStorage.setItem('selected', JSON.stringify({
+            files: selected,
+            srcDir: "{{ server_dir }}",
+            action: "copy"
+        }));
+    }
+}
+
+
+function pasteAction() {
+    var toPaste = sessionStorage.getItem('selected');
+
+    //alert("paste action");
+
+    if (toPaste == null || toPaste === null) {
+        alert("No files to paste");
+    } else {
+        toPaste = JSON.parse(toPaste);
+        /*for (const [key, value] of Object.entries(toPaste)) {
+            alert(key+':'+value);
+        }*/
+
+        if (toPaste['srcDir'] === "{{ server_dir }}") {
+            alert("Source dir and this dir are the same. Cannot paste files here.");
+        } else {
+
+        }
+    }
+}
+
+
+function zipAction() {
+
+}
+
+
+function searchAction() {
+    $("#searchModal").modal('show');
+}
+
+
+function advancedSearch() {
+    window.open("{{ url_for('advanced_search_route') }}");
+}
+
+
+function showSearchResults() {
+
+        var serverDir = $('#serverDir').val();
+        var searchInput = $('#searchInput').val().trim();
+        var dateFrom = $('#dateFrom').val();
+        var dateTo = $('#dateTo').val();
+
+        var link = `{{ url_for('search_route') }}?serverDir=` + serverDir + '&searchInput=' + searchInput + '&dateFrom=' + dateFrom + '&dateTo=' + dateTo;
+
+        window.open(link);
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    var actions = document.getElementsByClassName("action-btn")
+
+    // search zip upload paste cut copy
+    for (var nextBtn of actions) {
+        var pop = nextBtn.getAttribute('class').split(' ').pop();
+
+        if (pop === 'upload') {
+            nextBtn.setAttribute('onclick', 'showUploadModal()');
+        }
+        if (pop === 'copy') {
+            nextBtn.setAttribute('onclick', 'copyAction()');
+        }
+        if (pop === 'paste') {
+            nextBtn.setAttribute('onclick', 'pasteAction()');
+        }
+        if (pop === 'zip') {
+            nextBtn.setAttribute('onclick', 'zipAction()');
+        }
+        if (pop === 'search') {
+            nextBtn.setAttribute('onclick', 'searchAction()');
+        }
+    }
+
+});
+</script>
+
+
+</body>
+</html>
