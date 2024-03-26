@@ -113,7 +113,7 @@ function post() {
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) {
             if (xhr.status === 200) {
-                window.location.href = '/';
+                window.location.href = '/cmd';
             } else {
                 alert('Błąd: ' + xhr.status);
             }

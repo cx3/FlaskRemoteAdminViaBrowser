@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal w przeglądarce</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <style>
+        #editor {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 30px; /* Wysokość paska na komendy */
+            left: 0;
+        }
+        #command-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #f0f0f0;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        #command-input {
+            width: calc(100% - 10px);
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="editor"></div>
+    <div id="command-bar">
+        <input type="text" id="command-input" placeholder="Wprowadź komendę">
+    </div>
+
+    <script>
+        var socket = io('/cmd');
+
+        var editor = ace.edit("editor");
+        editor.setTheme("ace/theme/twilight");
+        editor.session.setMode("ace/mode/text");
+
+        var commandInput = document.getElementById('command-input');
+
+        commandInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                var command = commandInput.value;
+                socket.emit('execute_command', command);
+                commandInput.value = ''; // Wyczyść pole po wysłaniu komendy
+            }
+        });
+
+        socket.on('command_result', function(result) {
+            editor.session.insert(editor.session.getLength(), result + '\n');
+        });
+    </script>
+</body>
+</html>

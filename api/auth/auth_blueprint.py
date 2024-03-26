@@ -19,6 +19,9 @@ def auth_index_route():
 
 @bp.route('/login', methods=['GET', 'POST'])
 def auth_login_route():
+    if 'username' in session:
+        return redirect(url_for('cmd.cmd_main_route'))
+
     if request.method == 'GET':
         csrf_token = generate_csrf_token()
         session['csrf_token'] = csrf_token
@@ -38,24 +41,22 @@ def auth_login_route():
 
             print(f"session... username {session['username']}  {session['remote_addr']}  ")
 
-            return redirect(url_for('main_route'))
+            return redirect(url_for('cmd.cmd_main_route'))
         else:
             return render_template('login.html', error='Incorrect username or password')
 
 
 def is_user_authenticated(ip):
-    # Sprawdź, czy adres IP użytkownika znajduje się na liście zaufanych adresów IP
     trusted_ips = ['192.168.1.6', '192.168.1.10']  # Dodaj inne zaufane adresy IP według potrzeb
 
     if ip in trusted_ips:
         print('if ip in trusted ips')
         if 'username' in session:
-            print('if username in session')
+            # print('if username in session')
             return True
     return False
 
 
-# Dekorator login_required
 def login_required(view):
     @wraps(view)
     def decorated(*args, **kwargs):
