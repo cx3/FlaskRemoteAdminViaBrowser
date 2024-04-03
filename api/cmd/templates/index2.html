@@ -91,14 +91,13 @@
 
         var editor = ace.edit("editor");
         editor.setTheme("ace/theme/monokai");
-        editor.session.setMode("ace/mode/sh");
+        editor.session.setMode("ace/mode/sh", {charset: 'cp1512'});
 
         editor.setOptions({
             fontFamily: "Courier New", // Ustawienie czcionki
             fontSize: "16px", // Ustawienie rozmiaru czcionki
             color: "lightgreen"
         });
-
 
         var commandInput = document.getElementById('command-input');
 
@@ -113,6 +112,12 @@
         socket.on('command_result', function(result) {
             editor.session.insert(editor.session.getLength(), result + '\n');
         });
+
+
+        editor.session.on('change', () => {
+            editor.renderer.scrollToLine(Number.POSITIVE_INFINITY);
+        });
+
     </script>
 
 

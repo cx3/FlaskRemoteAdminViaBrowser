@@ -7,10 +7,13 @@ from api.app.search_engine import FileSearcher
 
 from flask import Flask, request, redirect, url_for, render_template, jsonify, send_file
 from flask_socketio import SocketIO, emit
+from flask_sqlalchemy import SQLAlchemy
 
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(32)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C/proj/some_sqlite.db'
+SQLAlchemy(app)
 socketio = SocketIO(app)
 
 
@@ -91,8 +94,6 @@ def get_file_route():
         if os.path.isfile(safe):
             # print('isfile')
             if 'text' in mime_type:
-                # print('text in mime')
-
                 open(safe + '_NEW', 'wt').write(request.form['data'])
                 return jsonify({'msg': 'DATA SAVED ON THE SERVER'})
             else:

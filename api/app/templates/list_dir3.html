@@ -589,7 +589,9 @@ function searchAction() {
 
 
 function advancedSearch() {
-    window.open("{{ url_for('advanced_search_route') }}");
+//advanced_search_route
+    let v = document.getElementById('serverDir').value;
+    window.open("{{ url_for('advanced_results_route') }}?root_dir=" + v);
 }
 
 

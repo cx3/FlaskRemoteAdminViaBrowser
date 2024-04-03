@@ -2,13 +2,15 @@ from api.app.routes import app, socketio
 from api.auth.auth_blueprint import bp as auth_bp
 from api.auth.auth_blueprint import login_required
 from api.cmd.cmd_blueprint import bp as cmd_bp
+from api.db.db_blueprint import bp as db_bp
 
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(cmd_bp, url_prefix='/cmd')
+app.register_blueprint(db_bp, url_prefix='/db')
 
 for rule in app.url_map.iter_rules():
-    print('Rule:', rule, '\t\tdecorated endpoint:', rule.endpoint)
     if rule.endpoint != 'static' and not rule.endpoint.startswith('auth'):
+        print('Rule:', rule, '\t\tdecorated endpoint:', rule.endpoint)
         view_func = app.view_functions[rule.endpoint]
         app.view_functions[rule.endpoint] = login_required(view_func)
 
