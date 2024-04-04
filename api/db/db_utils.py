@@ -60,7 +60,10 @@ def get_record_dict(table_name, column_name, value, name_only=False):
     fk = list(set(fk))
     print('fk:')
     for x in fk:
-        print('>>>', x)
+        print('# FK x=', x)
+        for y in ['name', 'params', 'primary_key', 'references', 'system', 'table', 'type', 'unique']:
+            print('>>>', x, y, getattr(x, y), type(getattr(x, y)))
+        print('='*55)
 
     return record_dict
 
