@@ -12,8 +12,10 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(32)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C/proj/some_sqlite.db'
-SQLAlchemy(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:/proj/some_sqlite.db'
+app.config['LOGIN_REQUIRED_SECURE_DECORATOR'] = False
+db = SQLAlchemy(app)
+app.config['db_instance'] = db
 socketio = SocketIO(app)
 
 
@@ -357,3 +359,14 @@ def handle_sort_and_show(data):
     print('sort finish')
     # emit('render_new_page', {'page': 1})
     emit('show_sorted', {}, namespace='/custom_search')
+
+
+@app.route('/site_map')
+@app.route('/site-map')
+def site_map_route():
+    links = []
+    for rule in app.url_map.iter_rules():
+        endpoint = rule.endpoint
+        link = f'<a href="{endpoint}">{endpoint}</a>'
+        links.append(link)
+    return "</br>".join(links)
