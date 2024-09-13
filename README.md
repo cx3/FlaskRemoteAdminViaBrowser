@@ -1,4 +1,4 @@
-Flask File Manager - Remote admin via web browser.
+Flask Remote Admin via web browser - like a pro
 
 ### BEFORE YOU pip install -r requirements.txt ###
 
