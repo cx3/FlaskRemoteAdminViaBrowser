@@ -5,18 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Server File Manager: {{ server_dir }}</title>
 
-    <!--
-        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
-
- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-
-  -->
-
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -25,9 +14,14 @@
 
 <style>
 
-    .input-group {
-        margin-bottom: 10px; /* Możesz dostosować wartość według potrzeb */
-    }
+.btn {
+	font-size: 12px;
+	color: #00ff00;
+}
+
+.input-group {
+    margin-bottom: 2px;
+}
 
 
 .highlighted-row {
@@ -38,8 +32,14 @@ input {
     background-color: #031f03;
 }
 
+input: hover {
+	background-color: black;
+	color: lightgreen;
+}
+
+
 label, input, p {
-    color: lightgray;
+    color: #02de4f;
 }
 
 .form-group {
@@ -47,13 +47,117 @@ label, input, p {
 }
 
 .form-control {
-    background-color: #223657;
-    color: #33de0d;
+    background-color: #071a00;
+    color: #b8cc04;
 }
 
+.form-control:hover {
+	background-color: #000a45;
+	color: #1ef202;
+}
+
+.form-control: focus {
+	background-color: #04a2b0;
+}
+
+
+
+
 .modal-body .form-group {
-                        margin-bottom: 5px; /* Możesz dostosować wartość według potrzeb */
-                    }
+    margin-bottom: 5px; /* Możesz dostosować wartość według potrzeb */
+	width: 100%;
+	
+	display: block;
+            //margin-bottom: 0.5rem;
+	
+}
+
+.modal-content {
+    background-color: #011c0b;
+    color: #eb7e02;
+}
+
+.modal-header {
+    border-bottom: 1px solid #454d55;
+}
+
+.modal-footer {
+    border-top: 1px solid #454d55;
+}
+
+
+
+
+
+
+
+.custom-file-input {
+    background-color: #495057;
+    color: #ffffff;
+}
+
+.custom-file-label {
+    background-color: #495057;
+    color: #ffffff;
+}
+
+
+
+.progress {
+    background-color: #495057;
+}
+
+.progress-bar {
+    background-color: #28a745;
+}
+
+.close {
+    color: #ffffff;
+}
+
+.close:hover {
+    color: #ff0000;
+}
+
+
+
+
+.search-input {
+	color: #1ef202;
+	margin-bottom: 3px;
+	
+	width: 100%;
+}
+
+
+.search-input-ex {
+	color: #1ef202;
+	margin-bottom: 3px;
+	
+	width: 100%;
+	font-size: 14px;
+	//background-color: 
+}
+
+
+.search-input:hover {
+	background-color: #138f03;
+	color: #00ff00;
+	
+	box-sizing: border-box;
+	border: 2px solid #f2ee07;
+	-webkit-transition: 0.5s;
+	transition: 0.5s;
+	outline: none;
+}
+
+
+.search-input:focus {
+    border: 1px solid #edc44a;
+}
+
+
+
 
 .file-action-bar {
     display: flex;
@@ -75,24 +179,31 @@ label, input, p {
   font-weight: bold;
 }
 
+
+
+
 .table {
     background-color: #022405;
     color: #0ba316;
 }
 
 
-    .action-btn {
-        padding: 5px;
-        margin: 5px;
-        border: none;
-        cursor: pointer;
-        font-size: 15px;
+tr :hover {
+	color: red;
+}
+
+.action-btn {
+    padding: 3px;
+    margin: 2px;
+    border: none;
+    cursor: pointer;
+    font-size: 10px;
 		
-		background-color: #014201;
-		color: #039603;
+	background-color: #014201;
+	color: #039603;
 		
-		transition: all 0.3s ease; /* Dodajemy płynne przejście */
-    }
+	transition: all 0.3s ease; /* Dodajemy płynne przejście */
+}
 	
 	
 	.copy { color: #007bff; }
@@ -110,7 +221,7 @@ label, input, p {
 	.action-btn: hover {
 		background-color: #00ff00; /* Jasnozielone tło */
 		color: #ff0000; /* Czerwony tekst */
-		font-size: 18px; /* Powiększona czcionka */
+		font-size: 12px; /* Powiększona czcionka */
 	}
 
 
@@ -118,11 +229,61 @@ label, input, p {
         background-color: #2e3604;
         color: #7eb507;
     }
+	
+	.dirTreeRoot:hover {
+		background-color: #022405;
+	}
 
     .dirTreeSub {
-        background-color: #2e3604;
+        //background-color: #2e3604;
         color: #7eb507;
     }
+	
+	.btn-outline-secondary {
+		background-color: #000;
+	}
+	
+	
+#fileLink {
+    width: 100%;
+    box-sizing: border-box; /* Ensure padding and border are included in the width */
+}
+
+
+.MY_CUSTOM_LABEL_CLASS {
+    display: block;
+    width: 100%;
+    margin-bottom: 5px; /* Add some space between the label and input */
+}
+
+.custom-file {
+    width: 100%;
+}
+
+
+
+
+
+/* Maksymalna wysokość dla modala i przewijanie */
+.modal-body {
+    max-height: 70vh;
+    overflow-y: auto; /* Włączenie przewijania w treści modala */
+}
+
+.scroll-container {
+    background-color: #2a2a2a; /* Kolor tła, aby pasował do ciemnego motywu */
+    color: #004969;
+    max-height: 200px; /* Wysokość kontenera */
+    overflow-y: auto; /* Włączenie przewijania dla zawartości */
+    padding: 3px;
+    border: 1px solid #ccc;
+}
+
+/* Styl dla inputa */
+#fileToExtract {
+    background: #1a1a1a;
+    color: #ffff00; /* Żółty tekst */
+}
 
 </style>
 
@@ -132,7 +293,7 @@ label, input, p {
 
 <div class="row">
     <div class="col">
-        <nav aria-label="breadcrumb" ondblclick="alert('dopisac: zmien na input pozwalajac na przejscie do sciezki')">
+        <nav aria-label="breadcrumb" id="toggleNextView">
             <ol class="breadcrumb">
                 {% for folder in current_path %}
                     <li class="breadcrumb-item">
@@ -158,41 +319,45 @@ label, input, p {
     <input type="text" id="createdFilter">
 
     <label for="extensionFilter">Ext:</label>
-    <input type="text" id="extensionFilter">
+    <input type="text" id="extensionFilter" size="4">
 
     <label for="typeFilter">Type:</label>
     <input type="text" id="typeFilter">
 </div>
+
 <div class="d-inline-block">
     <button class="action-btn copy"><i class="fa fa-copy"></i>Copy</button>
     <button class="action-btn cut"><i class="fa fa-cut"></i>Cut</button>
     <button class="action-btn paste"><i class="fa fa-paste"></i>Paste</button>
     <button class="action-btn upload"><i class="fa fa-upload"></i>Upload</button>
+	<button class="action-btn down"><i class="fa fa-download"></i>Download</button>
     <button class="action-btn zip"><i class="fa fa-file-archive-o"></i>Zip</button>
-    <button class="action-btn search"><i class="fa fa-magnifying-glass">Search</i></button>
+    <button class="action-btn search"><i class="fa fa-magnifying-glass"></i>Search</button>
+	<button class="action-btn cmd"><i class="fa fa-terminal"></i>CMD</button>
+	<button class="action-btn pycon"><i class="fas fa-keyboard"></i>PyConsole</button>
 </div>
 
 <div class="container-fluid">
-
     <div class="row">
         <div class="col-3">
             <div class="panel panel-default">
                 <div><p>Directories</p></div>
                 <div id="dirTree">
                     {% set item = content['dirs'][0] %}
-                    <a class="btn btn-primary d-block mb-2 dirTreeSub" href="#" role="button" id="{{ server_dir }}" data-depth=1 > {{ server_dir }} </a>
+                    <a class="btn btn-outline-dark dirTreeSub d-block mb-2" href="#" role="button" id="{{ server_dir }}" data-depth=1 > {{ server_dir }} </a>
                 </div>
             </div>
         </div>
         <div class="col-9">
             <div class="panel panel-default">
-                <div class="">Content</div>
+                <div class=""><p style="color: #b3bd04" id="contentAndStatus">Content</div>
                 <div class="" id="filesDirContent">
 
-<table id="fileTable" class="table table-responsive table-dark" style="width: 100%;">
+
+<table id="fileTable" class="table" style="width: 100%;">
     <thead>
         <tr>
-            <th scope="col"><input type="checkbox" class="select-all" id="selectAll">Select</th>
+            <th scope="col"><input type="checkbox" class="select-all" id="selectAll"></th>
             <th scope="col" class="sort-header" data-sort="name">Name</th>
             <th scope="col" class="sort-header" data-sort="size">Size</th>
             <th scope="col" class="sort-header" data-sort="created">Created</th>
@@ -218,14 +383,18 @@ label, input, p {
             <td>{{ file.type }}</td>
 
             <td>
+				
                 {% if file.type == 'text' or file.type == 'document' %}
-                    <a class="fa-solid fa-file-pen" href="{{ url_for('ace_editor_route', file=file.full_path) }}"></a>
+                    <a class="fa-solid fa-file-pen" href="{{ url_for('ace_editor_route', file=file.full_path) }}" target="_blank"></a>
                 {% elif file.type == 'audio' %}
-                    <a class="fa-solid fa-file-audio" href="{{ url_for('audio_route', file=file.full_path) }}"></a>
+                    <a class="fa-solid fa-file-audio" href="{{ url_for('audio_route', file=file.full_path) }}" target="_blank"></a>
                 {% elif file.type == 'video' %}
-                    <a class="fa-solid fa-video" href="{{ url_for('video_route', file=file.full_path) }}"></a>
+                    <a class="fa-solid fa-video" href="{{ url_for('video_route', file=file.full_path) }}" target="_blank"></a>
                 {% elif file.type == 'image' %}
-                    <a class="fa-solid fa-image" href="{{ url_for('image_route', file=file.full_path) }}"></a>
+                    <a class="fa-solid fa-image" href="{{ url_for('paint_edit_route', file=file.full_path) }}" target="_blank"></a>
+				{% elif file.type == 'archive' %}
+					<!-- <a class="fa-solid fa-paperclip" href="{{ url_for('list_archive_route', file=file.full_path) }}" target="_blank"></a> -->
+					<a class="fa-solid fa-paperclip" data-file-path="{{ file.full_path }}"></a>
                 {% endif %}
 
                 <a class="fa-solid fa-download" href="{{ url_for('get_file_route', path=file.full_path) }}" download></a>
@@ -243,7 +412,67 @@ label, input, p {
 </div>
 
 
+<div id="invisibleDiv" style="display: none;"></div>
+
+
+
 <script>
+$(document).ready(function() {
+    $('body').css('font-size', '75%');
+	
+	$('td').on('dblclick', function(e) {
+		var lastTd = $(this).closest('tr').find('td:last-child');
+		var firstLink = lastTd.find('a:first');
+		if (firstLink.length) {
+			firstLink[0].click();
+		}
+		$(this).find('input[type="checkbox"]').prop('checked', true);
+	});
+	
+	
+	
+	$('#toggleNextView').on('click', function() {
+		$.ajax({
+			url: '/list_dir?toggle_folder_viewer=1',
+			type: 'POST',
+			data: {},
+			success: function(resp) {
+				window.location.href = "{{ url_for('list_dir_route') }}?server_dir=" + "{{ server_dir }}";
+			},
+		});
+	});
+	
+	
+	
+	function showExtractArchiveModal(archiveFile) {	
+		$('#fileToExtract').val(archiveFile);
+		window.$('#archiveModal').modal();
+		
+		$('#invisibleDiv').load('/archive?file=' + archiveFile + '&mode=raw', function() {
+			let container = $('#archiveFileContent');
+			container.empty();
+			let dicts = JSON.parse($('#invisibleDiv').html());
+			let i=-1;
+			$.each(dicts['raw'], function(index, dict) {
+                $.each(dict, function(key, value) {
+					i += 1;
+					if (i % 2 == 0)
+						container.append('<p>' + value + '</p>');
+                });
+            });
+		});
+	}
+	
+	// archive file in table
+	$(document).on('click', '.fa-solid.fa-paperclip', function() {  
+        showExtractArchiveModal($(this).data('file-path'));
+    });
+});
+
+
+
+
+
 document.addEventListener('DOMContentLoaded', function() {
     var headers = document.querySelectorAll('.sort-header');
     var selectAllCheckbox = document.getElementById('selectAll');
@@ -392,7 +621,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 
     function getBtnClassBy(depth) {
-        opts = ['primary', 'secondary', 'success', 'danger', 'warning', 'info'];
+        opts = ['secondary', 'light', 'dark', 'primary', 'info', 'success', 'danger', 'warning'];
 
         if (depth < 0) {
             depth = 0;
@@ -400,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (depth > opts.length - 1) {
             depth = depth % opts.length;
         }
-        return "btn-" + opts[depth];
+        return "btn btn-outline-" + opts[depth];   //"btn-" + opts[depth];
     }
 
 
@@ -433,7 +662,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         //console.log("fetched: " + now.full_path)
 
                             let e = document.createElement("a");
-                            e.setAttribute("class", "btn " + getBtnClassBy(current_depth + 1) + " d-block mb-2");
+                    //e.setAttribute("class", "btn " + getBtnClassBy(current_depth + 1) + " d-block mb-2");
+					e.setAttribute("class", "btn btn-outline-secondary d-block mb-2");
                             e.setAttribute("role", "button");
                             e.setAttribute("href", "#");
                         //console.log("new_id:" + now.full_path);
@@ -523,46 +753,84 @@ renderInit();
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="uploadSelectedFilesButton">Upload</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="uploadSelectedFilesButton">Upload</button>
             </div>
         </div>
     </div>
 </div>
 
 
+
+<!-- Remote Machine Download Modal -->
+    <div class="modal fade" id="downloadModal" tabindex="-1" role="dialog" aria-labelledby="downloadModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="downloadModalLabel">Download file on server to this dir:</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="custom-file">
+                        <label class="MY_CUSTOM_LABEL_CLASS" for="fileLink">File Link</label>
+                        <input type="text" class="MY_CUSTOM_INPUT_CLASS" id="fileLink" placeholder="Enter file link" value="https://ektoplazm.com/files/Rukirek%20-%20Hollow%20Void%20-%202015%20-%20MP3.zip">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success btn-download" id="remoteDownloadButton">Download</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 <!-- Search Modal -->
 <div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content" style="background-color: #0d3305">
             <div class="modal-header">
-                <h5 class="modal-title" id="searchModalLabel" style="color: #bbc412">Search files</h5>
+                <h5 class="modal-title" id="searchModalLabel" style="color: #e7f207">Search files</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="serverDir">Directory:</label>
-                    <input type="text" id="serverDir" class="form-control" placeholder="Server directory" value="{{ server_dir }}">
-                </div>
-                <div class="form-group">
-                    <label for="searchInput">Partial filename:</label>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Search files">
-                </div>
-                <div class="form-group">
-                    <label for="dateFrom">Date from:</label>
-                    <input type="date" id="dateFrom" class="form-control" placeholder="From">
-                </div>
-                <div class="form-group">
-                    <label for="dateTo">Date to:</label>
-                    <input type="date" id="dateTo" class="form-control" placeholder="To">
-                </div>
+				
+				<div class="container fluid" id="searchModalInputs"> <!-- -fluid container-dark -->
+							<div class="row input-group">
+								<label for="root_dir">Root Directory:</label>
+								<input type="text" id="root_dir" class="search-input" value="{{ server_dir }}">
+							</div>
+							<div class="row input-group">
+								<label for="partial_name">Starts/ends/partial/extension:</label>
+								<input type="text" id="partial_name" class="search-input" value=".py">
+							</div>
+							<div class="row input-group">
+								<label for="min_size">Min size:</label>
+								<input type="number" id="min_size" class="search-input">
+							</div>
+							<div class="row input-group">
+								<label for="max_size">Max size:</label>
+								<input type="number" id="max_size" class="search-input">
+							</div>
+							
+							<div class="row input-group">
+								<label for="created_before">Created before:</label>
+								<input type="datetime-local" id="created_before" class="search-input" name="created_before">
+							</div>
+							
+							<div class="row input-group">
+								<label for="created_after">Created after:</label>
+								<input type="datetime-local" id="created_after" class="search-input" name="created_after">
+							</div>
+				</div>
+
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger" onclick="advancedSearch()">Advanced Search</button>
-                <button class="btn btn-primary" type="button" id="searchButton" onclick="showSearchResults()">Search</button>
-
+                <button type="button" class="btn btn-outline-danger" onclick="advancedSearch()">Search</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
             </div>
         </div>
@@ -571,13 +839,166 @@ renderInit();
 
 
 
+
+ <!-- Extract Archive Modal -->
+   <div class="modal fade" id="archiveModal" tabindex="-1" role="dialog" aria-labelledby="archiveModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="archiveModalLabel">Extract Archive</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="fileToExtract">Archive File</label>
+                        <input type="text" class="form-control" style="background: black; color: yellow" id="fileToExtract" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="archiveFileContent">Preview files to extract</label>
+                        <div class="scroll-container" id="archiveFileContent">
+                            <!-- Dynamic content loaded here -->
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="destFolder">Destination Folder</label>
+                        <input type="text" class="form-control search-input search-input-ex" id="destFolder" placeholder="Enter destination folder" value="{{ server_dir }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="archivePassword">Archive Password (optional)</label>
+                        <input type="password" class="form-control search-input" id="archivePassword" placeholder="Enter password">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+				<input type="checkbox" id="overwriteOnArchiveExtract" class="btn btn-danger"><label for="overwriteOnArchiveExtract" class="btn btn-danger">Overwrite?</label></button>
+                <button type="button" class="btn btn-outline-warning" id="extractArchiveBtn">Extract</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
 <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> -->
 <script>
 
 function showUploadModal() {
-    //$("#uploadModal").modal('show');
-
     window.$('#uploadModal').modal();
+}
+
+
+function showDownloadModal() {
+	window.$('#downloadModal').modal();
+}
+
+
+
+function directoryExists() {
+	$.ajax({
+        url: '/dir_exists?path=' + $('#destFolder').val(),
+        type: 'GET',
+        //data: {},
+        success: function(resp) { 
+			if (resp.response === false || resp.response == false) {
+				$('#extractArchiveBtn').prop("disabled", true);
+				$('#destFolder').attr('style', 'background-color: red; color: lightgreen')
+			} else {
+				$('#extractArchiveBtn').prop("disabled", false);
+				$('#destFolder').removeAttr('style');
+			}
+		} 
+	});
+}
+
+
+$('#destFolder').on('keyup', function() {
+	directoryExists();
+});
+
+
+
+$('#extractArchiveBtn').on('click', function() { 
+	let password = $('#archivePassword').val();
+	let url = '/archive?file=' + $('#fileToExtract').val() + '&dest=' + $('#destFolder').val() + '&mode=extract';
+	
+	if (password.length > 0) {
+		url += '&password=' + password;
+	}
+
+	$.ajax({
+        url: url,
+        type: 'GET',
+        data: {},
+		success: function(resp) {
+			window.location.href = "{{ url_for('list_dir_route') }}?server_dir=" + $('#destFolder').val();
+		},
+	});
+});
+
+
+
+$('#uploadSelectedFilesButton').click(function () {
+                var fileInput = $('#fileInput')[0];
+                if (fileInput.files.length === 0) {
+                    alert('Please select a file to upload.');
+                    return;
+                }
+
+                var formData = new FormData();
+				formData.append('dest_dir', "{{ server_dir }}");
+                formData.append('file', fileInput.files[0]);
+
+                $('.progress').show();
+                $('.progress-bar').css('width', '0%').attr('aria-valuenow', 0);
+
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    xhr: function () {
+                        var xhr = new window.XMLHttpRequest();
+                        xhr.upload.addEventListener('progress', function (evt) {
+                            if (evt.lengthComputable) {
+                                var percentComplete = evt.loaded / evt.total;
+                                percentComplete = parseInt(percentComplete * 100);
+                                $('.progress-bar').css('width', percentComplete + '%').attr('aria-valuenow', percentComplete);
+                            }
+                        }, false);
+                        return xhr;
+                    },
+                    success: function (response) {
+                        //alert('File successfully uploaded.');
+                        $('#uploadModal').modal('hide');
+                        $('.progress').hide();
+                        $('.progress-bar').css('width', '0%').attr('aria-valuenow', 0);
+                        $('#fileInput').val('');
+                        $('.custom-file-label').html('Choose file');
+						location.reload();
+                    },
+                    error: function (xhr, status, error) {
+                        alert('Error: ' + error);
+                        $('.progress').hide();
+                        $('.progress-bar').css('width', '0%').attr('aria-valuenow', 0);
+                    }
+                });
+            });
+
+
+function getSelectedFiles() {
+	selected = [];
+    for (var chb of document.querySelectorAll('input[class="select-row"]:checked')) {
+         selected.push(chb.getAttribute("id").replace("file:", ""));
+    }
+    return selected;
 }
 
 
@@ -622,8 +1043,68 @@ function pasteAction() {
 
 
 function zipAction() {
+	let filesToZip = getSelectedFiles();
 
 }
+
+
+
+function checkRemoteDownloadStatus() {
+    // Ustawienie interwału do cyklicznego sprawdzania stanu
+    let intervalId = setInterval(function() {
+        $.ajax({
+            url: '/remote_download',
+            type: 'GET',
+            data: {},
+            success: function(resp) {
+				console.log("length: " + Object.keys(resp).length);
+			
+                if (Object.keys(resp).length === 0) {
+                    $('#contentAndStatus').text('Content.' + 'Remote downloading finished');
+                    clearInterval(intervalId);  // Zatrzymanie cyklu sprawdzania po zakończeniu
+                } else {
+                    // $('#contentAndStatus').text('Content.  Now ' + Object.keys(resp).length + ' downloading files to this folder on server side');
+					
+					let tmpStatus = 'Content.  Now files ' + Object.keys(resp).length + ' to download. Precents: '; 
+					Object.keys(resp).forEach(function(key) {
+						Object.keys(resp[key]).forEach(function(k) {
+						precent = resp[key][k]['downloaded_size'] / resp[key][k]['total_size'];
+						tmpStatus += Math.floor(percent*100)/100 + '%  ';
+						});
+					});
+					$('#contentAndStatus').text(tmpStatus);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error: ' + error);
+                clearInterval(intervalId);  // Zatrzymanie cyklu w przypadku błędu
+            }
+        });
+    }, 2000);  // Sprawdzanie co 2 sekundy (możesz dostosować interwał w zależności od potrzeb)
+	
+	location.refresh();
+}
+
+
+
+
+$('#remoteDownloadButton').on('click', function() {
+	$.ajax({
+		type: "POST",
+		url: "/remote_download",
+		data: JSON.stringify({
+			url: $('#fileLink').val(),
+			dest_dir: "{{ server_dir }}"
+		}),
+		contentType: "application/json; charset=UTF-8",
+		success: function(resp) {
+			checkRemoteDownloadStatus();
+		}
+		//dataType: "app/json: charset=UTF-8"
+	});
+});
+
+
 
 
 function searchAction() {
@@ -631,10 +1112,30 @@ function searchAction() {
 }
 
 
+function cmdAction() {
+	window.open("/cmd?start_dir={{ server_dir }}", "_blank");
+}
+		
+		
+function pyconAction() {
+	window.open("/cmd/python/interactive?start_dir={{ server_dir }}", "_blank");
+}
+		
+
 function advancedSearch() {
 //advanced_search_route
-    let v = document.getElementById('serverDir').value;
-    window.open("{{ url_for('advanced_results_route') }}?root_dir=" + v);
+
+	let s = "{{ url_for('advanced_search_route')  }}" + "?";
+	var inputs = $('#searchModalInputs input');
+    inputs.each(function() {
+		let val = $(this).val();
+		if (val.length > 0) {
+			s += $(this).attr('id') + '=' + val + "&";
+		}
+    });
+	alert(s);
+	
+	window.location.href = s;
 }
 
 
@@ -652,7 +1153,7 @@ function showSearchResults() {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-    var actions = document.getElementsByClassName("action-btn")
+    var actions = document.getElementsByClassName("action-btn");
 
     // search zip upload paste cut copy
     for (var nextBtn of actions) {
@@ -670,9 +1171,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (pop === 'zip') {
             nextBtn.setAttribute('onclick', 'zipAction()');
         }
+		if (pop === 'down') {
+			nextBtn.setAttribute('onclick', 'showDownloadModal()');
+		}
         if (pop === 'search') {
             nextBtn.setAttribute('onclick', 'searchAction()');
         }
+		if (pop === 'cmd') {
+			nextBtn.setAttribute('onclick', 'cmdAction()');
+		}
+		if (pop === 'pycon') {
+			nextBtn.setAttribute('onclick', 'pythonconsoleAction()');
+		}
     }
 
 });

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamiczny Edytor Słownika - {{ name }}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+body {
+    background-color: #121212;
+    color: #00FF00;
+    font-size: 0.9rem;
+}
+
+.panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+}
+
+.panel-keys {
+    background-color: #333333;
+    width: 30%;
+    color: #559100;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.panel-values {
+    background-color: #444444;
+    width: 50%;
+    padding-left: 10px;
+    color: #00FFFF;
+}
+
+.panel-others {
+    background-color: #555555;
+    width: 20%;
+    padding-left: 10px;
+}
+
+.panel:hover {
+    background-color: #666666;
+    color: #94fc03;
+
+    border-color: #eb9100;
+    box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25);
+}
+
+.form-control {
+    background-color: #444444;
+    color: #db6c04;
+    border-color: #555555;
+    width: 100%;
+    font-size: 0.9rem;
+}
+
+/* Zmieniony kolor tekstu dla aktywnych inputów */
+.form-control:focus {
+    background-color: #333333; /* Ciemniejsze tło przy focusie */
+    color: #FFAA00; /* Jaskrawo pomarańczowy kolor tekstu */
+    border-color: #FF0000;
+    box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25);
+}
+
+.form-label {
+    cursor: pointer;
+    margin-right: 10px;
+    width: 100%;
+}
+
+.form-label:hover {
+    color:#94fc03;
+}
+
+.btn-primary {
+    background-color: #444444;
+    border-color: #555555;
+    color: #00FF00;
+    font-size: 0.9rem;
+}
+
+.btn-primary:hover {
+    background-color: #555555;
+}
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h3>Dynamiczny Edytor Słownika - {{ name }}</h3>
+
+        <div class="d-flex justify-content-end mb-3">
+            <button type="button" class="btn btn-primary ml-2">Przycisk 1</button>
+            <button type="button" class="btn btn-secondary ml-2">Przycisk 2</button>
+            <button type="button" class="btn btn-success ml-2">Przycisk 3</button>
+            <button type="button" class="btn btn-danger ml-2">Przycisk 4</button>
+        </div>
+
+
+        <form id="dict-form">
+            <div id="dict-entries">
+                {% for key, value in dictionary.items() %}
+                    <div class="panel">
+                        <div class="panel-keys">
+                            <span class="form-label" contenteditable="true" id="key-{{ loop.index0 }}">{{ key }}</span>
+                        </div>
+                        <div class="panel-values">
+                            {% if value is sameas true or value is sameas false %}
+                                <input type="checkbox" class="form-control" id="value-{{ loop.index0 }}" name="{{ key }}" {% if value %}checked{% endif %}>
+                            {% else %}
+                                <input type="text" class="form-control" id="value-{{ loop.index0 }}" name="{{ key }}" value="{{ value }}">
+                            {% endif %}
+                        </div>
+                        <div class="panel-others">
+                            <!-- Możesz tutaj dodać dodatkowe elementy lub informacje -->
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+        </form>
+    </div>
+
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Obsługa formularza
+            $('#dict-form').on('submit', function(e) {
+                e.preventDefault();
+                var dictData = {};
+
+                $('#dict-form').find('.panel').each(function() {
+                    var key = $(this).find('.form-label').text().trim();
+                    var input = $(this).find('input');
+                    var value;
+
+                    if (input.attr('type') === 'checkbox') {
+                        value = input.is(':checked');
+                    } else {
+                        value = input.val();
+                    }
+                    dictData[key] = value;
+                });
+
+                $.ajax({
+                    url: '',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(dictData),
+                    success: function(response) {
+                        alert('Zmiany zapisane!');
+                    }
+                });
+            });
+
+            // Dodawanie nowego klucza
+            $('#add-entry').on('click', function() {
+                $('#dict-entries').append(`
+                    <div class="panel">
+                        <div class="panel-keys">
+                            <span class="form-label" contenteditable="true">new_key</span>
+                        </div>
+                        <div class="panel-values">
+                            <input type="text" class="form-control" value="">
+                        </div>
+                        <div class="panel-others">
+                            <!-- Możesz tutaj dodać dodatkowe elementy lub informacje -->
+                        </div>
+                    </div>
+                `);
+            });
+        });
+    </script>
+
+
+	<script>
+
+var dictStr = `{
+    "host": "localhost",
+    "port": 5000,
+    "debug": True,
+    "features": ["feature1", "feature2"],
+    "nested_dict": {
+        "key1": "value1",
+        "key2": "value2"
+    }
+}`;
+
+
+$('#hehe').on('click', function() {
+	renderDictEditor(dictStr);
+});
+
+
+function renderDictEditor(dictAsString) {
+    // Parsowanie tekstu JSON do obiektu JavaScript
+    const dict = JSON.parse(JSON.stringify(dictAsString));
+
+    // Znajdowanie i usuwanie starego edytora
+    const oldEditor = document.getElementById('dict-editor');
+    if (oldEditor) {
+        oldEditor.remove();
+    }
+
+    // Tworzenie nowego elementu edytora
+    const editor = document.createElement('div');
+    editor.id = 'dict-editor';
+    editor.classList.add('container', 'mt-5');
+
+    // Generowanie nagłówka
+    const header = document.createElement('h3');
+    header.textContent = 'Dynamiczny Edytor Słownika';
+    editor.appendChild(header);
+
+    // Tworzenie formularza
+    const form = document.createElement('form');
+    form.id = 'dict-form';
+
+    // Tworzenie kontenera na wpisy
+    const entriesContainer = document.createElement('div');
+    entriesContainer.id = 'dict-entries';
+
+    // Funkcja pomocnicza do renderowania poszczególnych par klucz-wartość
+    function renderEntry(key, value) {
+        const panel = document.createElement('div');
+        panel.classList.add('panel', 'd-flex', 'align-items-center', 'justify-content-between', 'mb-2', 'p-2');
+
+        const keyDiv = document.createElement('div');
+        keyDiv.classList.add('panel-keys', 'mr-2');
+        keyDiv.style.flex = '0 0 30%';
+
+        const keyLabel = document.createElement('span');
+        keyLabel.classList.add('form-label');
+        keyLabel.contentEditable = 'true';
+        keyLabel.textContent = key;
+        keyDiv.appendChild(keyLabel);
+
+        const valueDiv = document.createElement('div');
+        valueDiv.classList.add('panel-values');
+        valueDiv.style.flex = '0 0 50%';
+
+        let valueInput;
+        if (typeof value === 'boolean') {
+            valueInput = document.createElement('input');
+            valueInput.type = 'checkbox';
+            valueInput.classList.add('form-control');
+            valueInput.checked = value;
+        } else if (typeof value === 'object' && value !== null) {
+            valueInput = document.createElement('input');
+            valueInput.type = 'text';
+            valueInput.classList.add('form-control');
+            valueInput.value = JSON.stringify(value);
+        } else {
+            valueInput = document.createElement('input');
+            valueInput.type = 'text';
+            valueInput.classList.add('form-control');
+            valueInput.value = value;
+        }
+
+        valueDiv.appendChild(valueInput);
+
+        panel.appendChild(keyDiv);
+        panel.appendChild(valueDiv);
+
+        entriesContainer.appendChild(panel);
+    }
+
+    // Przetwarzanie każdej pary klucz-wartość ze słownika
+    for (const [key, value] of Object.entries(dict)) {
+        renderEntry(key, value);
+    }
+
+    form.appendChild(entriesContainer);
+
+    // Przycisk dodawania nowego klucza
+    const addButton = document.createElement('button');
+    addButton.type = 'button';
+    addButton.classList.add('btn', 'btn-primary', 'mt-2');
+    addButton.textContent = 'Dodaj nowy klucz';
+
+    addButton.addEventListener('click', function() {
+        renderEntry('new_key', '');
+    });
+
+    form.appendChild(addButton);
+
+    // Przycisk zapisu zmian
+    const saveButton = document.createElement('button');
+    saveButton.type = 'submit';
+    saveButton.classList.add('btn', 'btn-primary', 'mt-2');
+    saveButton.textContent = 'Zapisz zmiany';
+    form.appendChild(saveButton);
+
+    // Dodanie formularza do edytora
+    editor.appendChild(form);
+
+    // Dodanie nowego edytora do ciała dokumentu
+    document.body.appendChild(editor);
+}
+
+
+	</script>
+
+</body>
+</html>

@@ -1,8 +1,20 @@
 import os
+import signal
 import platform
+import time
 from datetime import datetime
 
 from werkzeug.utils import secure_filename
+from flask import jsonify
+import requests
+import psutil
+
+
+def js_redirect(new_location: str = '/') -> str:
+    new_location = new_location.replace('"', "'")
+    return f"""
+        <script> window.location.href="{new_location}"; </script>
+    """
 
 
 def slash(path: str) -> str:
@@ -14,7 +26,9 @@ def get_file_type(name):
         return 'text'
 
     ext = name.split('.')[-1].lower()
-
+    if ext in ['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'iso', 'arj', 'lzh', 'cab', 'ace', 'z', 'tgz', 'tbz2',
+               'lz', 'cpio', 'shar', 'deb', 'rpm', 'dmg', 'jar', 'war', 'apk', 'mar', 'sbx']:
+        return 'archive'
     if ext in ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt']:
         return 'document'
     if ext in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'tif', 'tiff']:
@@ -57,8 +71,9 @@ def list_dir(server_dir='/', only_dirs=False):
     dirs_data = []
 
     icons = {
+        'archive': 'fa-solid fa-paperclip',
         'document': 'fa-solid fa-file-lines',
-        'text': 'fa-solid fa-code',
+        'text': 'fa-solid fa-box-archive',
         'audio': 'fa-solid fa-music',
         'video': 'fa-solid fa-file',
         'image': 'fa-solid fa-file-image'
@@ -107,3 +122,88 @@ def list_dir(server_dir='/', only_dirs=False):
 def make_secured_path(path: str) -> str:
     safe = slash(path)
     return os.path.join('/'.join(safe.split('/')[:-1]), secure_filename(safe.split('/')[-1]))
+
+
+def threaded_download(url, dest_dir, task_id, download_status: dict):
+    local_filename = os.path.join(dest_dir, url.split('/')[-1])
+    response = requests.get(url, stream=True)
+    total_size = int(response.headers.get('content-length', 0))
+    downloaded_size = 0
+
+    print('start background download')
+    with open(local_filename, 'wb') as file:
+        for data in response.iter_content(chunk_size=1024):
+            file.write(data)
+            downloaded_size += len(data)
+            download_status[task_id].update({'total_size': total_size, 'downloaded_size': downloaded_size})
+            # print('while remote downloading, task_id=', task_id, '===>', download_status[task_id])
+    print('background downloading finished')
+    download_status[task_id]["done"] = True
+
+
+def get_server_state(sort_by: str, order: bool = True, units='kb', limit=-1):
+    calc = dict(b=1, kb=1024, mb=1024 ** 2, gb=1024 ** 3)
+    units = 'b' if units not in calc.keys() else units
+    sort_by = 'memory_info' if sort_by not in ['pid', 'name', 'memory_info', 'cpu_percent'] else sort_by
+    order = order if isinstance(order, bool) else True
+
+    limit = int(limit) if isinstance(limit, str) and limit.isdigit() else -1
+
+    def _parse_units(size: int) -> str:
+        return f"{(size / calc[units]):3.4f} {units}" if units == 'gb' else f"{(size // calc[units])} {units}"
+
+    memory = psutil.virtual_memory()
+    disk = psutil.disk_usage('/')
+    exes = sorted([
+            dict(
+                pid=proc.pid, name=proc.name(), memory_info=_parse_units(proc.memory_info().rss),
+                cpu_percent=proc.cpu_percent()
+            )
+            for proc in psutil.process_iter(['pid', 'name', 'memory_info', 'cpu_percent'])
+        ],
+        key=lambda x: int(x[sort_by].split(' ')[0]) if sort_by == 'memory_info' else x[sort_by],
+        reverse=order
+    )
+    limit = -1 if limit in [0, -1] or limit >= len(exes) - 1 else limit
+
+    return jsonify({
+        "exes": exes[:limit] if limit < len(exes) else exes,
+        "memory": {
+            "total": memory.total,
+            "available": memory.available,
+        },
+        "cpu": {
+            "usage": psutil.cpu_percent(),
+            "logic cpus": psutil.cpu_count(logical=True),
+            "physic cpus": psutil.cpu_count(logical=False)
+        },
+        "disk": {
+            "total": disk.total,
+            "free": disk.free
+        }
+    })
+
+
+def kill_process(pid):
+    try:
+        if os.name == 'nt':  # Windows
+            os.kill(pid, signal.SIGTERM)
+        else:  # Unix-based systems (Linux, macOS)
+            os.kill(pid, signal.SIGKILL)
+        print(f"Process {pid} has been terminated.")
+        return True
+    except OSError as e:
+        print(f"Error: {e}")
+    return False
+
+
+def system_info() -> dict:
+    info = platform.uname()
+    return {
+        "System": info.system,
+        "Node Name": info.node,
+        "Release": info.release,
+        "Version": info.version,
+        "Machine": info.machine,
+        "Processor": info.processor
+    }

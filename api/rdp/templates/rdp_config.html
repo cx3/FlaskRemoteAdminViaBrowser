@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Information Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #343a40;
+            color: #f8f9fa;
+        }
+        .sidebar {
+            height: 100vh;
+            overflow-y: auto;
+            background-color: #212529;
+            padding-top: 20px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .iframe-container {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 25%;
+            height: 25%;
+            border: 1px solid #6c757d;
+        }
+        .card {
+            background-color: #495057;
+            border-color: #6c757d;
+        }
+        .table {
+            color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-none d-md-block sidebar">
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#">
+                                <i class="fas fa-tachometer-alt"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-cogs"></i>
+                                Settings
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-file-alt"></i>
+                                Logs
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 content">
+                <h1 class="h2">System Information</h1>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-header">CPU Usage</div>
+                            <div class="card-body">
+                                <h5 id="cpu-usage">Loading...</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-header">Memory Usage</div>
+                            <div class="card-body">
+                                <h5 id="memory-usage">Loading...</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-header">Disk Usage</div>
+                            <div class="card-body">
+                                <h5 id="disk-usage">Loading...</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2>Process List</h2>
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>PID</th>
+                                <th>Name</th>
+                                <th>Memory</th>
+                                <th>CPU</th>
+                            </tr>
+                        </thead>
+                        <tbody id="process-list">
+                            <!-- Process data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- iFrame Container -->
+    <div class="iframe-container">
+        <iframe src="/your/route/here" frameborder="0" width="100%" height="100%"></iframe>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Example JavaScript to update the dashboard -->
+    <script>
+        $(document).ready(function () {
+            function updateDashboard() {
+
+
+                $.ajax({
+                    url: '/rdp/config',
+                    method: 'GET',
+                    success: function (data) {
+                        $('#cpu-usage').text(data.cpu.usage + '%');
+                        $('#memory-usage').text('Total: ' + (data.memory.total / (1024**3)).toFixed(2) + ' GB, Available: ' + (data.memory.available / (1024**3)).toFixed(2) + ' GB');
+                        $('#disk-usage').text('Total: ' + (data.disk.total / (1024**3)).toFixed(2) + ' GB, Free: ' + (data.disk.free / (1024**3)).toFixed(2) + ' GB');
+
+                        var processList = $('#process-list');
+                        processList.empty();
+                        data.exe.forEach(function (proc) {
+                            processList.append(
+                                '<tr>' +
+                                '<td>' + proc.pid + '</td>' +
+                                '<td>' + proc.name + '</td>' +
+                                '<td>' + (proc.memory_info.rss / (1024**2)).toFixed(2) + ' MB</td>' +
+                                '<td>' + proc.cpu_percent.toFixed(2) + '%</td>' +
+                                '</tr>'
+                            );
+                        });
+                    }
+                });
+            }
+
+            // Update dashboard initially and then every 5 seconds
+            updateDashboard();
+            setInterval(updateDashboard, 5000);
+        });
+    </script>
+</body>
+</html>

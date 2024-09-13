@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RDP Admin</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #screen {
+            border: 2px solid #ffffff;
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="screen"></canvas>
+    <script>
+        const socket = io('/rdp');
+        const canvas = document.getElementById('screen');
+        const ctx = canvas.getContext('2d');
+
+        function refreshImage(data) {
+            const img = new Image();
+            img.src = 'data:image/png;base64,' + data.image;
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+            };
+        }
+
+        socket.on('image', (data) => {
+            console.log("image sent from server");
+            const img = new Image();
+            img.src = 'data:image/png;base64,' + data.image;
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+            };
+        });
+
+        canvas.addEventListener('click', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (event.clientX - rect.left) * scaleX;
+            const y = (event.clientY - rect.top) * scaleY;
+            socket.emit('mouse_event', { x: x, y: y });
+            socket.emit('click_event', { button: 'left' });
+        });
+
+        document.addEventListener('keydown', (event) => {
+            socket.emit('keyboard_event', { key: event.key });
+        });
+    </script>
+</body>
+</html>

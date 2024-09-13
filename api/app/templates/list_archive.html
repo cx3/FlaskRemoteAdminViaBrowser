@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Nested Dictionary Pretty Print</title>
+    <style>
+        .nested-dict {
+            font-family: Arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .nested-dict th, .nested-dict td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .nested-dict th {
+            background-color: #f2f2f2;
+            text-align: left;
+        }
+        .nested-dict td {
+            vertical-align: top;
+        }
+        .nested-dict .key {
+            font-weight: bold;
+        }
+        .nested-dict .value {
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <table class="nested-dict">
+        <thead>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if not is_dict(data) %}
+                {% set data = {0: data} %}
+            {% endif %}
+
+            {% macro render_dict(d) %}
+                {% for key, value in d.items() %}
+                    <tr>
+                        <td class="key">{{ key }}</td>
+                        <td class="value">
+                            {% if is_dict(value) %}
+                                <table class="nested-dict">
+                                    <tbody>
+                                        {{ render_dict(value) }}
+                                    </tbody>
+                                </table>
+                            {% elif is_list(value) %}
+                                <ul>
+                                    {% for item in value %}
+                                        <li>
+                                            {% if is_dict(item) %}
+                                                <table class="nested-dict">
+                                                    <tbody>
+                                                        {{ render_dict(item) }}
+                                                    </tbody>
+                                                </table>
+                                            {% else %}
+                                                {{ item }}
+                                            {% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                {{ value }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endmacro %}
+
+            {{ render_dict(data) }}
+        </tbody>
+    </table>
+</body>
+</html>

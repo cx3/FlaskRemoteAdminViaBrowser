@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Archive Browser</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .folder-tree {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-3 folder-tree">
+                <h4>Folders</h4>
+                <ul class="list-group">
+                    {{ render_tree(tree) }}
+                </ul>
+            </div>
+            <div class="col-9">
+                <h4>Files in {{ folder_path }}</h4>
+                <table class="table table-dark table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Extension</th>
+                            <th>Size (bytes)</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for file in current_files %}
+                        <tr>
+                            <td>{{ file.name }}</td>
+                            <td>{{ file.extension }}</td>
+                            <td>{{ file.size }}</td>
+                            <td>{{ file.date }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        function render_tree(tree, parent_path='') {
+            let html = '<ul>';
+            for (const [key, value] of Object.entries(tree)) {
+                const full_path = parent_path + key + '/';
+                if (Object.keys(value).length > 0) {
+                    html += `<li><a href="?file={{ file_path }}&folder=${full_path}">${key}/</a>${render_tree(value, full_path)}</li>`;
+                } else {
+                    html += `<li><a href="?file={{ file_path }}&folder=${full_path}">${key}</a></li>`;
+                }
+            }
+            html += '</ul>';
+            return html;
+        }
+        document.querySelector('.folder-tree').innerHTML = render_tree({{ tree|tojson }});
+    </script>
+</body>
+</html>

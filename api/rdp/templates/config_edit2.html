@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamiczny Edytor Słownika - {{ name }}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /*  body {
+            background-color: #121212;
+            color: #00FF00;
+        }
+        .form-control {
+            background-color: #333333;
+            color: #FFFF00;
+            border-color: #444444;
+        }
+        .form-control:focus {
+            border-color: #FF0000;
+            box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25);
+        }
+        .btn-primary {
+            background-color: #444444;
+            border-color: #555555;
+            color: #00FF00;
+        }
+        .btn-primary:hover {
+            background-color: #555555;
+        }
+        .modal-content {
+            background-color: #222222;
+            color: #00FF00;
+        }   */
+
+
+        body {
+            background-color: #121212;
+            color: #00FF00;
+            font-size: 0.9rem;
+        }
+        .form-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+        .form-control {
+            background-color: #333333;
+            color: #FFFF00;
+            border-color: #444444;
+            width: 70%;
+            font-size: 0.9rem;
+        }
+        .form-control:focus {
+            border-color: #FF0000;
+            box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25);
+        }
+        .btn-primary {
+            background-color: #444444;
+            border-color: #555555;
+            color: #00FF00;
+            font-size: 0.9rem;
+        }
+        .btn-primary:hover {
+            background-color: #555555;
+        }
+        .form-label {
+            cursor: pointer;
+            margin-right: 10px;
+            width: 30%;
+        }
+        .form-label:hover {
+            color: #FF00FF;
+        }
+        .form-control:hover {
+            color: #00FFFF;
+        }
+        .modal-content {
+            background-color: #222222;
+            color: #00FF00;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h3>Dynamiczny Edytor Słownika - {{ name }}</h3>
+        <form id="dict-form">
+            <div id="dict-entries">
+                {% for key, value in dictionary.items() %}
+                    <div class="form-group">
+                        <label for="{{ key }}">{{ key }}</label>
+                        {% if value is sameas true or value is sameas false %}
+                            <input type="checkbox" class="form-control" id="{{ key }}" name="{{ key }}" {% if value %}checked{% endif %}>
+                        {% elif is_list(value) %}
+                            <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#listModal" data-key="{{ key }}">Edytuj listę</button>
+                        {% else %}
+                            <input type="text" class="form-control" id="{{ key }}" name="{{ key }}" value="{{ value }}">
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn btn-primary" id="add-entry">Dodaj nowy klucz</button>
+            <button type="submit" class="btn btn-primary mt-2">Zapisz zmiany</button>
+        </form>
+    </div>
+
+    <!-- Modal do edycji listy -->
+    <div class="modal fade" id="listModal" tabindex="-1" role="dialog" aria-labelledby="listModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="listModalLabel">Edytuj listę</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="list-entries"></div>
+                    <button type="button" class="btn btn-primary" id="add-list-item">Dodaj element</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Zamknij</button>
+                    <button type="button" class="btn btn-primary" id="save-list">Zapisz listę</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Obsługa formularza
+            $('#dict-form').on('submit', function(e) {
+                e.preventDefault();
+                var dictData = {};
+
+                $('#dict-form').find('.form-group').each(function() {
+                    var input = $(this).find('input');
+                    var key = input.attr('name');
+                    var value = input.attr('type') === 'checkbox' ? input.is(':checked') : input.val();
+                    dictData[key] = value;
+                });
+
+                $.ajax({
+                    url: '', //   /rdb/dict2/%name%
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(dictData),
+                    success: function(response) {
+                        alert('Zmiany zapisane pomyślnie!');
+                    },
+                    error: function(a, b, c) {
+                        alert(a+' ' + b + ' ' + c);
+                    }
+                });
+            });
+
+            // Dodawanie nowych kluczy
+            $('#add-entry').on('click', function() {
+                var newKey = prompt('Wprowadź nazwę nowego klucza:');
+                if (newKey) {
+                    $('#dict-entries').append(`
+                        <div class="form-group">
+                            <label for="${newKey}">${newKey}</label>
+                            <input type="text" class="form-control" id="${newKey}" name="${newKey}">
+                        </div>
+                    `);
+                }
+            });
+
+            // Obsługa modala do edycji listy
+            var currentKey;
+            $('#listModal').on('show.bs.modal', function(event) {
+                var button = $(event.relatedTarget);
+                currentKey = button.data('key');
+                var listData = JSON.parse($(`#${currentKey}`).val());
+
+                $('#list-entries').empty();
+                listData.forEach(function(item, index) {
+                    $('#list-entries').append(`
+                        <div class="form-group">
+                            <input type="text" class="form-control list-item" value="${item}">
+                        </div>
+                    `);
+                });
+            });
+
+            $('#add-list-item').on('click', function() {
+                $('#list-entries').append(`
+                    <div class="form-group">
+                        <input type="text" class="form-control list-item">
+                    </div>
+                `);
+            });
+
+            $('#save-list').on('click', function() {
+                var listData = [];
+                $('#list-entries').find('.list-item').each(function() {
+                    listData.push($(this).val());
+                });
+
+                $(`#${currentKey}`).val(JSON.stringify(listData));
+                $('#listModal').modal('hide');
+            });
+        });
+    </script>
+</body>
+</html>

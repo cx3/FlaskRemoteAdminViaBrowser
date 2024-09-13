@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music, video, photos</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet"> -->
+	
+	
+	
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script> 
+	
+	
+	<script src="https://cdn.jsdelivr.net/npm/@interactjs/interactjs/dist/interact.min.js"></script>
+	
+    
+	<style>
+        .floating-window {
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fff;
+            resize: both;
+            overflow: auto;
+            position: absolute;
+        }
+		
+		#playlist2 {  		// panel playlista, prawa czesc ekranu
+			//drag: true;
+			//shadow:true;
+		
+            top: 10px;
+            left: 100%;
+            width: 20%;
+            height: 90%;
+            /*resize: both;
+            overflow: auto;
+            position: absolute;*/
+            border: 1px solid green;
+            padding: 10px;
+            background-color: white;
+        }
+		
+		#floating-window-player { // dolny panel z przyciskami do playera
+			top: 0px;
+            left: 20px;
+            width: 55%;
+            height: 20%;
+
+            //resize: both;
+            overflow: auto;
+			position: absolute;
+			border-radius: 10px;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            
+            border: 1px solid #ccc;
+            padding: 20px;
+            background-color: #fff;
+        }
+		
+		#video-player {  // panel na video
+			top: -200px;
+			left: -230px; 
+			width: 300px;
+			height: 200px;
+		}
+		#audio-player {
+			position: absolute;
+			top: -999px;
+			left: -9999px;
+			width: 300px;
+			height: 100px;
+		}
+
+		
+		body {
+			color: white;
+			transition: background-color 2s;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: -1;
+        }
+
+		video::-webkit-media-controls {
+			display: none;
+		}
+		
+		.player-controls {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+		.player-button {
+            background-color: #1db954;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .player-button:hover {
+            transform: scale(1.1);
+        }
+        .player-button:active {
+            transform: scale(0.9);
+        }
+        .player-button svg {
+            fill: #ffffff;
+            width: 24px;
+            height: 24px;
+        }
+		.player-progress-bar {
+            width: 100%;
+            height: 25px;
+            background-color: #333;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .player-progress {
+            height: 100%;
+            background-color: red;
+            width: 0;
+            transition: width 0.2s;
+        }
+		
+
+/* Could Use thise as well for Individual Controls */
+video::-webkit-media-controls-play-button {}
+video::-webkit-media-controls-volume-slider {}
+video::-webkit-media-controls-mute-button {}
+video::-webkit-media-controls-timeline {}
+video::-webkit-media-controls-current-time-display {}
+
+
+
+.video-player {
+    	max-width: 100%; /* Set a pixel value instead if no parent container*/
+    	margin: 0 auto; /* Center the container */
+	}
+.video-player video {
+    	width: 100%; /* Fill the available width */
+    	height: auto; /* Adjust height automatically */
+}
+
+		
+		
+    </style>
+</head>
+<body>
+
+	
+    <canvas id="canvas"></canvas>
+
+    <div id="video-player" class="floating-window">
+        <video width=100% autoplay playsinline style="pointer-events: none;" controls="false">
+            <source src="video.mp4" type="video/mp4">
+            Twoja przeglądarka nie obsługuje elementu wideo.
+        </video>
+    </div>
+	
+    <div id="audio-player" class="floating-window">
+        <audio controls>
+            <source src="audio.mp3" type="audio/mp3">
+            Twoja przeglądarka nie obsługuje elementu audio.
+        </audio>
+    </div>
+    <div id="playlist2" class="floating-window">
+        <ul class="list-group">
+            {% for file, type in playlist %}
+				<li class="list-group-item" data-src="/file?path={{ file }}" data-type="{{ type }}">{{ file }}</li>
+			{% endfor %}
+        </ul>
+    </div>
+	
+
+	<div id="floating-window-player" class="floating-window">
+        <div class="player-controls">
+            <button class="player-button" id="prev">
+                <svg viewBox="0 0 24 24"><path d="M6 19.5V4.5L18 12L6 19.5Z"></path></svg>
+            </button>
+            <button class="player-button" id="rewind">
+                <svg viewBox="0 0 24 24"><path d="M12 19.5V4.5L6 12L12 19.5ZM18 19.5V4.5L12 12L18 19.5Z"></path></svg>
+            </button>
+            <button class="player-button" id="play-pause">
+                <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5V19L19 12L8 5Z"></path></svg>
+                <svg id="pause-icon" viewBox="0 0 24 24" style="display: none;"><path d="M6 19H10V5H6M14 5V19H18V5H14Z"></path></svg>
+            </button>
+            <button class="player-button" id="forward">
+                <svg viewBox="0 0 24 24"><path d="M12 19.5V4.5L18 12L12 19.5ZM6 19.5V4.5L12 12L6 19.5Z"></path></svg>
+            </button>
+            <button class="player-button" id="next">
+                <svg viewBox="0 0 24 24"><path d="M6 19.5V4.5L18 12L6 19.5Z"></path></svg>
+            </button>
+        </div>
+        <div id="player-progress-bar"  class="player-progress-bar">
+            <div class="player-progress" id="player-progress"></div>
+        </div>
+    </div>
+	
+	<script>
+	
+	
+	var player = null; // zmienna do przechowywania odtwarzacza (video/audio)
+	var player_playing = false; // status odtwarzania
+
+        $(document).ready(function(){
+				$('#video-player').animate({
+					top: '20px',
+					left: '20px',
+					backgroundColor: 'black',
+					color: 'green'
+				}, 700);
+
+				$('#playlist2').animate({
+                    top: '20px',
+                    left: '80%',
+					backgroundColor: 'black',
+					color: 'green'
+                }, 700);
+				
+				$('#floating-window-player').animate({
+					top: '70%',
+					left: '20%',
+					backgroundColor: 'black',
+					color: 'green'
+				}, 700);
+				
+				$('body').animate({ backgroundColor: 'black', color: 'green' }, 2000);
+			
+			$('.floating-window').resizable();	
+			
+            
+            $.each($("video"), function(){this.controls = false; }); 
+
+			function updatePlayPauseIcons() {
+				if (player.paused) {
+					$('#play-icon').show();
+					$('#pause-icon').hide();
+				} else {
+					$('#play-icon').hide();
+					$('#pause-icon').show();
+				}
+			}
+
+			function stopPlayer() {
+				if (player) {
+					player.pause();
+					player_playing = false;
+					updatePlayPauseIcons();
+				}
+			}		
+			
+			function updateProgress(percentage) {
+				const progressBar = document.getElementById('player-progress');
+				progressBar.style.width = percentage + '%';
+
+				if (percentage < 30) {
+					progressBar.style.backgroundColor = 'red';
+				} else if (percentage < 70) {
+					progressBar.style.backgroundColor = 'yellow';
+				} else {
+					progressBar.style.backgroundColor = 'green';
+				}
+			}
+			
+			function updateProgressBar() {
+				if (player) {
+					var currentTime = player.currentTime;
+					var duration = player.duration;
+					var progress = (currentTime / duration) * 100;
+					updateProgress(progress);
+					console.log("updateProgress: currentTime " + currentTime + " duration " + duration + " progress " + progress);
+					$('#player-progress').val(progress);
+				}
+			}
+			
+			function playerRewindToPercent(percent) {
+				if (player) {
+					player.pause();
+					var duration = player.duration;
+					var newTime = (percentage / 100) * duration;
+					player.currentTime = newTime;
+					player.play();
+					//updateProgress(percentage);
+				}
+			}
+
+			$('li').on('click', function() {
+				var src = $(this).attr('data-src');
+				var type = $(this).attr('data-type');
+				
+				stopPlayer();
+
+				if(type === 'video') {
+					player = $('video')[0];
+					$('video').attr('src', src);
+					$('#video-player').show();
+					player.play();
+					player_playing = true;
+					alert("DURATION " + player.duration);
+					updatePlayPauseIcons();
+				} else if(type === 'audio') {
+					player = $('audio')[0];
+					$('audio').attr('src', src);
+					$('#audio-player').show();
+					player.play();
+					player_playing = true;
+					updatePlayPauseIcons();
+				}
+				player.addEventListener('timeupdate', updateProgressBar);
+			});
+			
+			$('#player-progress-bar').click(function(e) {
+				var offset = $(this).offset();
+				var width = $(this).width();
+				var clickX = e.pageX - offset.left;
+				var percentage = (clickX / width) * 100;
+				
+				updateProgress(percentage);
+			});
+
+			$('#play-pause').on('click', function() {
+				if (player) {
+					if (player.paused) {
+						player.play();
+					} else {
+						player.pause();
+					}
+					updatePlayPauseIcons();
+				}
+			});
+			
+			$("video").click(function() {
+				$('#play-pause').click();
+			});
+
+			$('#progress').on('input', function() {
+				if (player) {
+					var value = $(this).val();
+					var duration = player.duration;
+					player.currentTime = (value / 100) * duration;
+				}
+			});
+
+			$(document).on('keydown', function(e) {
+				if (!player) return;
+
+				switch(e.key) {
+					case 'ArrowLeft':
+						player.currentTime = Math.max(0, player.currentTime - 5);
+						break;
+					case 'ArrowRight':
+						player.currentTime = Math.min(player.duration, player.currentTime + 5);
+						break;
+					case ' ':
+						if (player.paused) {
+							player.play();
+						} else {
+							player.pause();
+						}
+						updatePlayPauseIcons();
+						break;
+					case 'Enter':
+						if (e.altKey) {
+							if (!document.fullscreenElement) {
+								document.documentElement.requestFullscreen();
+							} else {
+								if (document.exitFullscreen) {
+									document.exitFullscreen();
+								}
+							}
+						}
+						break;
+				}
+			})
+		});
+
+	</script>
+	
+
+</body>
+</html>

@@ -1,0 +1,1203 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Server File Manager: {{ server_dir }}</title>
+
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+
+.btn {
+	font-size: 12px;
+	color: #00ff00;
+}
+
+.input-group {
+    margin-bottom: 2px;
+}
+
+
+.highlighted-row {
+    background-color: #34ebd5;
+}
+
+input {
+    background-color: #031f03;
+}
+
+input: hover {
+	background-color: black;
+	color: lightgreen;
+}
+
+
+label, input, p {
+    color: #02de4f;
+}
+
+.form-group {
+    background-color: #031f03;
+}
+
+.form-control {
+    background-color: #071a00;
+    color: #b8cc04;
+}
+
+.form-control:hover {
+	background-color: #000a45;
+	color: #1ef202;
+}
+
+.form-control: focus {
+	background-color: #04a2b0;
+}
+
+
+
+
+.modal-body .form-group {
+    margin-bottom: 5px; /* Możesz dostosować wartość według potrzeb */
+	width: 100%;
+	
+	display: block;
+            //margin-bottom: 0.5rem;
+	
+}
+
+.modal-content {
+    background-color: #011c0b;
+    color: #eb7e02;
+}
+
+.modal-header {
+    border-bottom: 1px solid #454d55;
+}
+
+.modal-footer {
+    border-top: 1px solid #454d55;
+}
+
+
+
+
+
+
+
+.custom-file-input {
+    background-color: #495057;
+    color: #ffffff;
+}
+
+.custom-file-label {
+    background-color: #495057;
+    color: #ffffff;
+}
+
+
+
+.progress {
+    background-color: #495057;
+}
+
+.progress-bar {
+    background-color: #28a745;
+}
+
+.close {
+    color: #ffffff;
+}
+
+.close:hover {
+    color: #ff0000;
+}
+
+
+
+
+.search-input {
+	color: #1ef202;
+	margin-bottom: 3px;
+	
+	width: 100%;
+}
+
+
+.search-input-ex {
+	color: #1ef202;
+	margin-bottom: 3px;
+	
+	width: 100%;
+	font-size: 14px;
+	//background-color: 
+}
+
+
+.search-input:hover {
+	background-color: #138f03;
+	color: #00ff00;
+	
+	box-sizing: border-box;
+	border: 2px solid #f2ee07;
+	-webkit-transition: 0.5s;
+	transition: 0.5s;
+	outline: none;
+}
+
+
+.search-input:focus {
+    border: 1px solid #edc44a;
+}
+
+
+
+
+.file-action-bar {
+    display: flex;
+    flex-direction: row-reverse; /* Ustawia elementy od prawej do lewej */
+    justify-content: flex-start; /* Rozpoczyna układanie elementów od lewej strony */
+}
+
+.breadcrumb {
+    background-color: #041426;
+}
+
+.breadlink {
+    color: #ff7b00;
+}
+
+.breadlink:hover {
+  background-color: #e63115;
+  color: #c4bf04;
+  font-weight: bold;
+}
+
+
+
+
+.table {
+    background-color: #022405;
+    color: #0ba316;
+}
+
+
+tr :hover {
+	color: red;
+}
+
+.action-btn {
+    padding: 3px;
+    margin: 2px;
+    border: none;
+    cursor: pointer;
+    font-size: 10px;
+		
+	background-color: #014201;
+	color: #039603;
+		
+	transition: all 0.3s ease; /* Dodajemy płynne przejście */
+}
+	
+	
+	.copy { color: #007bff; }
+    .cut { color: #dc3545; }
+    .paste { color: #28a745; }
+    .upload { color: #ffc107; }
+    .zip { color: #6c757d; }
+	
+	
+
+    .action-btn i {
+        margin-right: 5px;
+    }
+	
+	.action-btn: hover {
+		background-color: #00ff00; /* Jasnozielone tło */
+		color: #ff0000; /* Czerwony tekst */
+		font-size: 12px; /* Powiększona czcionka */
+	}
+
+
+    .dirTreeRoot {
+        background-color: #2e3604;
+        color: #7eb507;
+    }
+	
+	.dirTreeRoot:hover {
+		background-color: #022405;
+	}
+
+    .dirTreeSub {
+        //background-color: #2e3604;
+        color: #7eb507;
+    }
+	
+	.btn-outline-secondary {
+		background-color: #000;
+	}
+	
+	
+#fileLink {
+    width: 100%;
+    box-sizing: border-box; /* Ensure padding and border are included in the width */
+}
+
+
+.MY_CUSTOM_LABEL_CLASS {
+    display: block;
+    width: 100%;
+    margin-bottom: 5px; /* Add some space between the label and input */
+}
+
+.custom-file {
+    width: 100%;
+}
+
+
+
+
+
+/* Maksymalna wysokość dla modala i przewijanie */
+.modal-body {
+    max-height: 70vh;
+    overflow-y: auto; /* Włączenie przewijania w treści modala */
+}
+
+.scroll-container {
+    background-color: #2a2a2a; /* Kolor tła, aby pasował do ciemnego motywu */
+    color: #004969;
+    max-height: 200px; /* Wysokość kontenera */
+    overflow-y: auto; /* Włączenie przewijania dla zawartości */
+    padding: 3px;
+    border: 1px solid #ccc;
+}
+
+/* Styl dla inputa */
+#fileToExtract {
+    background: #1a1a1a;
+    color: #ffff00; /* Żółty tekst */
+}
+
+
+
+.file-item {
+            text-align: center;
+            margin: 10px;
+			color: #d47006;
+        }
+        .file-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .file-name {
+            font-size: 14px;
+			color: #7d5e00
+        }
+		
+		.file-name:hover {
+            font-size: 14px;
+			color: #00ff26;
+        }
+
+</style>
+
+
+</head>
+<body style="background-color:#0b0f03">
+
+<div class="row">
+    <div class="col">
+        <nav aria-label="breadcrumb" id="toggleNextView">
+            <ol class="breadcrumb">
+                {% for folder in current_path %}
+                    <li class="breadcrumb-item">
+                        <a class="breadlink" href="{{ url_for('list_dir_route', server_dir='/'.join(current_path[:loop.index])) }}">{{ folder }}</a>
+                    </li>
+                {% endfor %}
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="d-inline-block">
+    <label for="nameFilter">Name:</label>
+    <input type="text" id="nameFilter">
+
+    <label for="sizeFilterFrom">Size From:</label>
+    <input type="text" id="sizeFilterFrom" size="6">
+
+    <label for="sizeFilterTo">To:</label>
+    <input type="text" id="sizeFilterTo" size="6">
+
+    <label for="createdFilter">Created:</label>
+    <input type="text" id="createdFilter">
+
+    <label for="extensionFilter">Ext:</label>
+    <input type="text" id="extensionFilter" size="4">
+
+    <label for="typeFilter">Type:</label>
+    <input type="text" id="typeFilter">
+</div>
+
+<div class="d-inline-block">
+    <button class="action-btn copy"><i class="fa fa-copy"></i>Copy</button>
+    <button class="action-btn cut"><i class="fa fa-cut"></i>Cut</button>
+    <button class="action-btn paste"><i class="fa fa-paste"></i>Paste</button>
+    <button class="action-btn upload"><i class="fa fa-upload"></i>Upload</button>
+	<button class="action-btn down"><i class="fa fa-download"></i>Download</button>
+    <button class="action-btn zip"><i class="fa fa-file-archive-o"></i>Zip</button>
+    <button class="action-btn search"><i class="fa fa-magnifying-glass"></i>Search</button>
+	<button class="action-btn cmd"><i class="fa fa-terminal"></i>CMD</button>
+	<button class="action-btn pycon"><i class="fas fa-keyboard"></i>PyConsole</button>
+</div>
+
+
+<div class="container-fluid">
+        <div class="row">
+            <div class="col-3">
+                <div class="panel panel-default">
+                    <div><p>Directories</p></div>
+                    <div id="dirTree">
+                        {% set item = content['dirs'][0] %}
+                        <a class="btn btn-outline-dark dirTreeSub d-block mb-2" href="#" role="button" id="{{ server_dir }}" data-depth=1 > {{ server_dir }} </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-9">
+                <div class="panel panel-default">
+                    <div class=""><p style="color: #b3bd04" id="contentAndStatus">Content</p></div>
+                    <div class="" id="filesDirContent">
+                        <div class="row">
+						
+				<!--                 'name': file_name,
+                'size': os.path.getsize(file_path),
+                'created_at': datetime.fromtimestamp(os.path.getctime(file_path)).strftime('%Y-%m-%d %H:%M:%S'),
+                'full_path': file_path,-->
+						
+						
+                            {% for next_info in content['files'] %}
+                                <div class="col-md-2 file-item" data-full_path="{{ next_info.full_path }}">
+                                    
+								{% if next_info['type'] == 'document' %}
+									<i class="fas fa-file-alt"></i>
+								{% endif %}	
+								
+								{% if next_info['type'] == 'archive' %}
+									<i class="fas fa-sd-card"></i>
+								{% endif %}	
+								
+								{% if next_info['type'] == 'document' %}
+									<i class="fas fa-file"></i>
+								{% endif %}	
+								
+								{% if next_info['type'] == 'image' %}
+									<i class="fas fa-file-image"></i>
+								{% endif %}	
+								
+								{% if next_info['type'] == 'audio' %}
+									<i class="fas fa-file-audio"></i>
+								{% endif %}	
+								
+								{% if next_info['type'] == 'video' %}
+									<i class="fas fa-file-video"></i>
+								{% endif %}	
+								
+									
+									<i class="fas fa-file-alt file-icon"></i> <!-- Zmień ikonę w zależności od typu pliku -->
+                                    <div class="file-name">{{ next_info.name }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+
+function renderChildren(x) {
+        var id;
+        var clicked;
+        if (x == null || x === null) {
+            //console.log("if-else: renderChildren x passed null");
+            id = "{{ server_dir }}";
+            clicked = document.getElementById(id);
+        } else {
+            //console.log("renderChildren else section. x=" + x);
+            clicked = x;
+            id = x.id;
+            //console.log("in section else.  clicked:" + clicked + "#### id="+id);
+        }
+        //console.log("renderChildren after if-else:  clicked=" +clicked+ " #########  id=" + id);
+        const current_depth = parseInt(clicked.getAttribute("data-depth"));
+
+                $.ajax({
+                    url: "/get_folders", // URL to get sub-folders for a folder
+                    method: "POST",
+                    data: { folder_id : id },
+
+                    success: function(data) {
+                        let dirs = data.dirs;
+
+                        for (var i=0;  i<dirs.length;  ++i) {
+                            var now = dirs[i];
+                        //console.log("fetched: " + now.full_path)
+
+                            let e = document.createElement("a");
+                    //e.setAttribute("class", "btn " + getBtnClassBy(current_depth + 1) + " d-block mb-2");
+					e.setAttribute("class", "btn btn-outline-secondary d-block mb-2");
+                            e.setAttribute("role", "button");
+                            e.setAttribute("href", "#");
+                        //console.log("new_id:" + now.full_path);
+                            e.setAttribute("id", now.full_path);
+                            e.setAttribute("data-depth", parseInt(current_depth + 1));
+                            e.setAttribute("onclick", "renderChildren(this)");
+                            e.text = now.name;
+
+                            let browseDirectory = document.createElement("a");
+                            browseDirectory.setAttribute("href", "/list_dir?server_dir=" + now.full_path);
+                            browseDirectory.text = ">";
+                            browseDirectory.setAttribute("class", "fa fa-arrows");
+
+                            e.append(browseDirectory);
+
+                            clicked.removeAttribute("onclick");
+
+                            if (clicked.parentNode == null) {
+                                clicked.append(e);
+                            } else {
+                                clicked.parentNode.insertBefore(e, clicked.nextSibling);
+                                clicked.append(e);
+                            }
+
+                            if (i == dirs.length-1 || i === dirs.length - 1) {
+                                e.focus();
+                                e.scrollIntoView();
+                            }
+                        } //for
+                    }, //success
+                    error: function(xhr, status, error) {
+                        console.error("Error loading tree: " + error);
+                    }
+                }); //ajax
+    }
+	
+function renderDirs() {
+        /*let tmp = document.createElement("a");
+        tmp.setAttribute("id", "{{ server_dir }}");
+        tmp.setAttribute("data-depth", 0);
+        tmp.setAttribute("visible", false);
+
+        document.getElementById("dirTree").append(tmp);*/
+        renderChildren(null);
+    }
+
+var renderedInit = false;
+function renderInit() {
+    if (renderedInit === false) {
+        var v = document.getElementById("{{ server_dir }}");
+        document.getElementById('dirTree').append(v);
+        renderDirs();
+        var v = document.getElementById("{{ server_dir }}");
+        //v.remove();
+        renderedInit = true;
+    }
+}
+renderInit();
+
+</script>
+
+
+<script>
+$(document).ready(function() {
+	function showExtractArchiveModal(archiveFile) {	
+		$('#fileToExtract').val(archiveFile);
+		window.$('#archiveModal').modal();
+		
+		$('#invisibleDiv').load('/archive?file=' + archiveFile + '&mode=raw', function() {
+			let container = $('#archiveFileContent');
+			container.empty();
+			let dicts = JSON.parse($('#invisibleDiv').html());
+			let i=-1;
+			$.each(dicts['raw'], function(index, dict) {
+                $.each(dict, function(key, value) {
+					i += 1;
+					if (i % 2 == 0)
+						container.append('<p>' + value + '</p>');
+                });
+            });
+		});
+	}
+	
+	// archive file in table
+	$(document).on('click', '.fa-solid.fa-paperclip', function() {  
+        showExtractArchiveModal($(this).data('file-path'));
+    });
+});
+</script>
+
+
+<script>
+
+function showExtractArchiveModal(archiveFile) {	
+		$('#fileToExtract').val(archiveFile);
+		window.$('#archiveModal').modal();
+		
+		$('#invisibleDiv').load('/archive?file=' + archiveFile + '&mode=raw', function() {
+			let container = $('#archiveFileContent');
+			container.empty();
+			let dicts = JSON.parse($('#invisibleDiv').html());
+			let i=-1;
+			$.each(dicts['raw'], function(index, dict) {
+                $.each(dict, function(key, value) {
+					i += 1;
+					if (i % 2 == 0)
+						container.append('<p>' + value + '</p>');
+                });
+            });
+		});
+	}
+	
+	// archive file in table
+	$(document).on('click', '.fa-solid.fa-paperclip', function() {  
+        showExtractArchiveModal($(this).data('file-path'));
+    });
+});
+</script?
+
+<script>
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    var nameFilterInput = document.getElementById('nameFilter');
+    var sizeFilterFromInput = document.getElementById('sizeFilterFrom');
+    var sizeFilterToInput = document.getElementById('sizeFilterTo');
+    var createdFilterInput = document.getElementById('createdFilter');
+    var extensionFilterInput = document.getElementById('extensionFilter');
+    var typeFilterInput = document.getElementById('typeFilter');
+
+    nameFilterInput.addEventListener('input', applyFilters);
+    sizeFilterFromInput.addEventListener('input', applyFilters);
+    sizeFilterToInput.addEventListener('input', applyFilters);
+    createdFilterInput.addEventListener('input', applyFilters);
+    extensionFilterInput.addEventListener('input', applyFilters);
+    typeFilterInput.addEventListener('input', applyFilters);
+
+    function applyFilters() {
+        var nameFilter = nameFilterInput.value.toLowerCase();
+        var sizeFilterFrom = parseInt(sizeFilterFromInput.value.toLowerCase());
+        var sizeFilterTo = parseInt(sizeFilterToInput.value.toLowerCase());
+        var createdFilter = createdFilterInput.value.toLowerCase();
+        var extensionFilter = extensionFilterInput.value.toLowerCase();
+        var typeFilter = typeFilterInput.value.toLowerCase();
+
+        var rows = document.querySelectorAll('#fileTable tbody tr');
+
+        rows.forEach(function(row) {
+            var name = row.cells[1].textContent.toLowerCase();
+            var size = parseInt(row.cells[2].textContent.toLowerCase());
+            var created = row.cells[3].textContent.toLowerCase();
+            var extension = row.cells[4].textContent.toLowerCase();
+            var type = row.cells[5].textContent.toLowerCase();
+
+            var nameMatch = name.includes(nameFilter);
+            var sizeMatchFrom = size >= sizeFilterFrom || !sizeFilterFrom;
+            var sizeMatchTo = size <= sizeFilterTo || !sizeFilterTo;
+            var createdMatch = created.includes(createdFilter);
+            var extensionMatch = extension.includes(extensionFilter);
+            var typeMatch = type.includes(typeFilter);
+
+            if (nameMatch && sizeMatchFrom && sizeMatchTo && createdMatch && extensionMatch && typeMatch) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
+
+
+
+<script>
+
+    function getBtnClassBy(depth) {
+        opts = ['secondary', 'light', 'dark', 'primary', 'info', 'success', 'danger', 'warning'];
+
+        if (depth < 0) {
+            depth = 0;
+        }
+        if (depth > opts.length - 1) {
+            depth = depth % opts.length;
+        }
+        return "btn btn-outline-" + opts[depth];   //"btn-" + opts[depth];
+    }
+
+
+    function renderChildren(x) {
+        var id;
+        var clicked;
+        if (x == null || x === null) {
+            //console.log("if-else: renderChildren x passed null");
+            id = "{{ server_dir }}";
+            clicked = document.getElementById(id);
+        } else {
+            //console.log("renderChildren else section. x=" + x);
+            clicked = x;
+            id = x.id;
+            //console.log("in section else.  clicked:" + clicked + "#### id="+id);
+        }
+        //console.log("renderChildren after if-else:  clicked=" +clicked+ " #########  id=" + id);
+        const current_depth = parseInt(clicked.getAttribute("data-depth"));
+
+                $.ajax({
+                    url: "/get_folders", // URL to get sub-folders for a folder
+                    method: "POST",
+                    data: { folder_id : id },
+
+                    success: function(data) {
+                        let dirs = data.dirs;
+
+                        for (var i=0;  i<dirs.length;  ++i) {
+                            var now = dirs[i];
+                        //console.log("fetched: " + now.full_path)
+
+                            let e = document.createElement("a");
+                    //e.setAttribute("class", "btn " + getBtnClassBy(current_depth + 1) + " d-block mb-2");
+					e.setAttribute("class", "btn btn-outline-secondary d-block mb-2");
+                            e.setAttribute("role", "button");
+                            e.setAttribute("href", "#");
+                        //console.log("new_id:" + now.full_path);
+                            e.setAttribute("id", now.full_path);
+                            e.setAttribute("data-depth", parseInt(current_depth + 1));
+                            e.setAttribute("onclick", "renderChildren(this)");
+                            e.text = now.name;
+
+                            let browseDirectory = document.createElement("a");
+                            browseDirectory.setAttribute("href", "/list_dir?server_dir=" + now.full_path);
+                            browseDirectory.text = ">";
+                            browseDirectory.setAttribute("class", "fa fa-arrows");
+
+                            e.append(browseDirectory);
+
+                            clicked.removeAttribute("onclick");
+
+                            if (clicked.parentNode == null) {
+                                clicked.append(e);
+                            } else {
+                                clicked.parentNode.insertBefore(e, clicked.nextSibling);
+                                clicked.append(e);
+                            }
+
+                            if (i == dirs.length-1 || i === dirs.length - 1) {
+                                e.focus();
+                                e.scrollIntoView();
+                            }
+                        } //for
+                    }, //success
+                    error: function(xhr, status, error) {
+                        console.error("Error loading tree: " + error);
+                    }
+                }); //ajax
+    }
+
+
+    function browseDirectory(x) {
+        window.location.href = '/list_dir?server_dir=' + x.id;
+    }
+
+
+    function renderDirs() {
+        /*let tmp = document.createElement("a");
+        tmp.setAttribute("id", "{{ server_dir }}");
+        tmp.setAttribute("data-depth", 0);
+        tmp.setAttribute("visible", false);
+
+        document.getElementById("dirTree").append(tmp);*/
+        renderChildren(null);
+    }
+
+var renderedInit = false;
+function renderInit() {
+    if (renderedInit === false) {
+        var v = document.getElementById("{{ server_dir }}");
+        document.getElementById('dirTree').append(v);
+        renderDirs();
+        var v = document.getElementById("{{ server_dir }}");
+        //v.remove();
+        renderedInit = true;
+    }
+}
+renderInit();
+</script>
+
+
+
+
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload File</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="fileInput">
+                    <label class="custom-file-label" for="fileInput">Choose file</label>
+                </div>
+                <div class="progress mt-3" style="display: none;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="uploadSelectedFilesButton">Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Remote Machine Download Modal -->
+    <div class="modal fade" id="downloadModal" tabindex="-1" role="dialog" aria-labelledby="downloadModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="downloadModalLabel">Download file on server to this dir:</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="custom-file">
+                        <label class="MY_CUSTOM_LABEL_CLASS" for="fileLink">File Link</label>
+                        <input type="text" class="MY_CUSTOM_INPUT_CLASS" id="fileLink" placeholder="Enter file link" value="https://ektoplazm.com/files/Rukirek%20-%20Hollow%20Void%20-%202015%20-%20MP3.zip">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success btn-download" id="remoteDownloadButton">Download</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Search Modal -->
+<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content" style="background-color: #0d3305">
+            <div class="modal-header">
+                <h5 class="modal-title" id="searchModalLabel" style="color: #e7f207">Search files</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+				
+				<div class="container fluid" id="searchModalInputs"> <!-- -fluid container-dark -->
+							<div class="row input-group">
+								<label for="root_dir">Root Directory:</label>
+								<input type="text" id="root_dir" class="search-input" value="{{ server_dir }}">
+							</div>
+							<div class="row input-group">
+								<label for="partial_name">Starts/ends/partial/extension:</label>
+								<input type="text" id="partial_name" class="search-input" value=".py">
+							</div>
+							<div class="row input-group">
+								<label for="min_size">Min size:</label>
+								<input type="number" id="min_size" class="search-input">
+							</div>
+							<div class="row input-group">
+								<label for="max_size">Max size:</label>
+								<input type="number" id="max_size" class="search-input">
+							</div>
+							
+							<div class="row input-group">
+								<label for="created_before">Created before:</label>
+								<input type="datetime-local" id="created_before" class="search-input" name="created_before">
+							</div>
+							
+							<div class="row input-group">
+								<label for="created_after">Created after:</label>
+								<input type="datetime-local" id="created_after" class="search-input" name="created_after">
+							</div>
+				</div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" onclick="advancedSearch()">Search</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+ <!-- Extract Archive Modal -->
+   <div class="modal fade" id="archiveModal" tabindex="-1" role="dialog" aria-labelledby="archiveModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="archiveModalLabel">Extract Archive</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="fileToExtract">Archive File</label>
+                        <input type="text" class="form-control" style="background: black; color: yellow" id="fileToExtract" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="archiveFileContent">Preview files to extract</label>
+                        <div class="scroll-container" id="archiveFileContent">
+                            <!-- Dynamic content loaded here -->
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="destFolder">Destination Folder</label>
+                        <input type="text" class="form-control search-input search-input-ex" id="destFolder" placeholder="Enter destination folder" value="{{ server_dir }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="archivePassword">Archive Password (optional)</label>
+                        <input type="password" class="form-control search-input" id="archivePassword" placeholder="Enter password">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+				<input type="checkbox" id="overwriteOnArchiveExtract" class="btn btn-danger"><label for="overwriteOnArchiveExtract" class="btn btn-danger">Overwrite?</label></button>
+                <button type="button" class="btn btn-outline-warning" id="extractArchiveBtn">Extract</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> -->
+<script>
+
+function showUploadModal() {
+    window.$('#uploadModal').modal();
+}
+
+
+function showDownloadModal() {
+	window.$('#downloadModal').modal();
+}
+
+
+
+function directoryExists() {
+	$.ajax({
+        url: '/dir_exists?path=' + $('#destFolder').val(),
+        type: 'GET',
+        //data: {},
+        success: function(resp) { 
+			if (resp.response === false || resp.response == false) {
+				$('#extractArchiveBtn').prop("disabled", true);
+				$('#destFolder').attr('style', 'background-color: red; color: lightgreen')
+			} else {
+				$('#extractArchiveBtn').prop("disabled", false);
+				$('#destFolder').removeAttr('style');
+			}
+		} 
+	});
+}
+
+
+$('#destFolder').on('keyup', function() {
+	directoryExists();
+});
+
+
+
+$('#extractArchiveBtn').on('click', function() { 
+	let password = $('#archivePassword').val();
+	let url = '/archive?file=' + $('#fileToExtract').val() + '&dest=' + $('#destFolder').val() + '&mode=extract';
+	
+	if (password.length > 0) {
+		url += '&password=' + password;
+	}
+
+	$.ajax({
+        url: url,
+        type: 'GET',
+        data: {},
+		success: function(resp) {
+			window.location.href = "{{ url_for('list_dir_route') }}?server_dir=" + $('#destFolder').val();
+		},
+	});
+});
+
+
+
+$('#uploadSelectedFilesButton').click(function () {
+                var fileInput = $('#fileInput')[0];
+                if (fileInput.files.length === 0) {
+                    alert('Please select a file to upload.');
+                    return;
+                }
+
+                var formData = new FormData();
+				formData.append('dest_dir', "{{ server_dir }}");
+                formData.append('file', fileInput.files[0]);
+
+                $('.progress').show();
+                $('.progress-bar').css('width', '0%').attr('aria-valuenow', 0);
+
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    xhr: function () {
+                        var xhr = new window.XMLHttpRequest();
+                        xhr.upload.addEventListener('progress', function (evt) {
+                            if (evt.lengthComputable) {
+                                var percentComplete = evt.loaded / evt.total;
+                                percentComplete = parseInt(percentComplete * 100);
+                                $('.progress-bar').css('width', percentComplete + '%').attr('aria-valuenow', percentComplete);
+                            }
+                        }, false);
+                        return xhr;
+                    },
+                    success: function (response) {
+                        //alert('File successfully uploaded.');
+                        $('#uploadModal').modal('hide');
+                        $('.progress').hide();
+                        $('.progress-bar').css('width', '0%').attr('aria-valuenow', 0);
+                        $('#fileInput').val('');
+                        $('.custom-file-label').html('Choose file');
+						location.reload();
+                    },
+                    error: function (xhr, status, error) {
+                        alert('Error: ' + error);
+                        $('.progress').hide();
+                        $('.progress-bar').css('width', '0%').attr('aria-valuenow', 0);
+                    }
+                });
+            });
+
+
+function getSelectedFiles() {
+	selected = [];
+    for (var chb of document.querySelectorAll('input[class="select-row"]:checked')) {
+         selected.push(chb.getAttribute("id").replace("file:", ""));
+    }
+    return selected;
+}
+
+
+function copyAction() {
+    selected = [];
+    for (var chb of document.querySelectorAll('input[class="select-row"]:checked')) {
+         selected.push(chb.getAttribute("id").replace("file:", ""));
+    }
+    if (selected.length == 0) {
+        alert("No files selected to copy...");
+    } else {
+        //alert("copyAction setSession");
+        sessionStorage.setItem('selected', JSON.stringify({
+            files: selected,
+            srcDir: "{{ server_dir }}",
+            action: "copy"
+        }));
+    }
+}
+
+
+function pasteAction() {
+    var toPaste = sessionStorage.getItem('selected');
+
+    //alert("paste action");
+
+    if (toPaste == null || toPaste === null) {
+        alert("No files to paste");
+    } else {
+        toPaste = JSON.parse(toPaste);
+        /*for (const [key, value] of Object.entries(toPaste)) {
+            alert(key+':'+value);
+        }*/
+
+        if (toPaste['srcDir'] === "{{ server_dir }}") {
+            alert("Source dir and this dir are the same. Cannot paste files here.");
+        } else {
+
+        }
+    }
+}
+
+
+function zipAction() {
+	let filesToZip = getSelectedFiles();
+
+}
+
+
+
+function checkRemoteDownloadStatus() {
+    // Ustawienie interwału do cyklicznego sprawdzania stanu
+    let intervalId = setInterval(function() {
+        $.ajax({
+            url: '/remote_download',
+            type: 'GET',
+            data: {},
+            success: function(resp) {
+				console.log("length: " + Object.keys(resp).length);
+			
+                if (Object.keys(resp).length === 0) {
+                    $('#contentAndStatus').text('Content.' + 'Remote downloading finished');
+                    clearInterval(intervalId);  // Zatrzymanie cyklu sprawdzania po zakończeniu
+                } else {
+                    // $('#contentAndStatus').text('Content.  Now ' + Object.keys(resp).length + ' downloading files to this folder on server side');
+					
+					let tmpStatus = 'Content.  Now files ' + Object.keys(resp).length + ' to download. Precents: '; 
+					Object.keys(resp).forEach(function(key) {
+						Object.keys(resp[key]).forEach(function(k) {
+						precent = resp[key][k]['downloaded_size'] / resp[key][k]['total_size'];
+						tmpStatus += Math.floor(percent*100)/100 + '%  ';
+						});
+					});
+					$('#contentAndStatus').text(tmpStatus);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error: ' + error);
+                clearInterval(intervalId);  // Zatrzymanie cyklu w przypadku błędu
+            }
+        });
+    }, 2000);  // Sprawdzanie co 2 sekundy (możesz dostosować interwał w zależności od potrzeb)
+	
+	location.refresh();
+}
+
+
+
+
+$('#remoteDownloadButton').on('click', function() {
+	$.ajax({
+		type: "POST",
+		url: "/remote_download",
+		data: JSON.stringify({
+			url: $('#fileLink').val(),
+			dest_dir: "{{ server_dir }}"
+		}),
+		contentType: "application/json; charset=UTF-8",
+		success: function(resp) {
+			checkRemoteDownloadStatus();
+		}
+		//dataType: "app/json: charset=UTF-8"
+	});
+});
+
+
+
+
+function searchAction() {
+    $("#searchModal").modal('show');
+}
+
+
+function cmdAction() {
+	window.open("/cmd?start_dir={{ server_dir }}", "_blank");
+}
+		
+		
+function pyconAction() {
+	window.open("/cmd/python/interactive?start_dir={{ server_dir }}", "_blank");
+}
+		
+
+function advancedSearch() {
+//advanced_search_route
+
+	let s = "{{ url_for('advanced_search_route')  }}" + "?";
+	var inputs = $('#searchModalInputs input');
+    inputs.each(function() {
+		let val = $(this).val();
+		if (val.length > 0) {
+			s += $(this).attr('id') + '=' + val + "&";
+		}
+    });
+	alert(s);
+	
+	window.location.href = s;
+}
+
+
+function showSearchResults() {
+
+        var serverDir = $('#serverDir').val();
+        var searchInput = $('#searchInput').val().trim();
+        var dateFrom = $('#dateFrom').val();
+        var dateTo = $('#dateTo').val();
+
+        var link = `{{ url_for('search_route') }}?serverDir=` + serverDir + '&searchInput=' + searchInput + '&dateFrom=' + dateFrom + '&dateTo=' + dateTo;
+
+        window.open(link);
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    var actions = document.getElementsByClassName("action-btn");
+
+    // search zip upload paste cut copy
+    for (var nextBtn of actions) {
+        var pop = nextBtn.getAttribute('class').split(' ').pop();
+
+        if (pop === 'upload') {
+            nextBtn.setAttribute('onclick', 'showUploadModal()');
+        }
+        if (pop === 'copy') {
+            nextBtn.setAttribute('onclick', 'copyAction()');
+        }
+        if (pop === 'paste') {
+            nextBtn.setAttribute('onclick', 'pasteAction()');
+        }
+        if (pop === 'zip') {
+            nextBtn.setAttribute('onclick', 'zipAction()');
+        }
+		if (pop === 'down') {
+			nextBtn.setAttribute('onclick', 'showDownloadModal()');
+		}
+        if (pop === 'search') {
+            nextBtn.setAttribute('onclick', 'searchAction()');
+        }
+		if (pop === 'cmd') {
+			nextBtn.setAttribute('onclick', 'cmdAction()');
+		}
+		if (pop === 'pycon') {
+			nextBtn.setAttribute('onclick', 'pythonconsoleAction()');
+		}
+    }
+
+});
+</script>
+

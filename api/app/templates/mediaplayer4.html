@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pływające Okienka</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .floating-window {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 300px;
+            height: 200px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            resize: both;
+            overflow: auto;
+            z-index: 1000;
+            cursor: move;
+        }
+        .floating-window::before,
+        .floating-window::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: transparent;
+            z-index: 1001;
+        }
+        .floating-window::before {
+            top: -5px;
+            left: -5px;
+            cursor: nwse-resize; 
+        }
+        .floating-window::after {
+            bottom: -5px;
+            right: -5px;
+            cursor: nwse-resize;
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-window">
+        <h5 class="text-center">Pływające Okienko</h5>
+        <p>Możesz zmieniać rozmiar tego okienka przeciągając jego krawędzie.</p>
+    </div>
+
+    <ul>
+        <li data-src="movie.mp4" data-type="video">Video 1</li>
+        <li data-src="audio.mp3" data-type="audio">Audio 1</li>
+    </ul>
+
+    <video id="video-player" width="320" height="240" controls>
+        <source src="movie.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <audio id="audio-player" controls>
+        <source src="audio.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <button id="play">Play</button>
+    <button id="pause">Pause</button>
+    <button id="seek">Seek to 10s</button>
+    <button id="getDuration">Get Duration</button>
+
+    <!-- jQuery, Popper.js, Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('li').on('click', function() {
+                var src = $(this).data('src');
+                var type = $(this).data('type');
+
+                if (type === 'video') {
+                    $('#audio-player').hide();
+                    $('#video-player').show();
+                    $('#video-player').attr('src', src);
+                    $('#video-player')[0].play();
+
+                    if (document.fullscreenElement) {
+                        document.exitFullscreen().catch(err => console.error(err));
+                    }
+
+                    $('#play').off('click').on('click', function() {
+                        $('#video-player')[0].play();
+                    });
+
+                    $('#pause').off('click').on('click', function() {
+                        $('#video-player')[0].pause();
+                    });
+
+                    $('#seek').off('click').on('click', function() {
+                        $('#video-player')[0].currentTime = 10;
+                    });
+
+                    $('#getDuration').off('click').on('click', function() {
+                        alert('Video duration: ' + $('#video-player')[0].duration + ' seconds');
+                    });
+                } else if (type === 'audio') {
+                    $('#video-player')[0].pause();
+                    $('#video-player').hide();
+                    $('#audio-player').show();
+                    $('#audio-player').attr('src', src);
+                    $('#audio-player')[0].play();
+
+                    $('#play').off('click').on('click', function() {
+                        $('#audio-player')[0].play();
+                    });
+
+                    $('#pause').off('click').on('click', function() {
+                        $('#audio-player')[0].pause();
+                    });
+                }
+
+                $('.playlist-item').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            $(document).on('keydown', function(e) {
+                let seconds = 5;
+                const type = $('.playlist-item.active').data('type');
+
+                switch (e.key) {
+                    case 'ArrowLeft':
+                        window.scrollBy(-10, 0);
+                        seconds = -5;
+                        break;
+                    case 'ArrowRight':
+                        window.scrollBy(10, 0);
+                        seconds = 5;
+                        break;
+                    case 'ArrowUp':
+                        window.scrollBy(0, -10);
+                        break;
+                    case 'ArrowDown':
+                        window.scrollBy(0, 10);
+                        break;
+                    case ' ':
+                        window.scrollTo(0, 0);
+                        break;
+                }
+
+                if (type === 'video') {
+                    const videoPlayer = document.getElementById('video-player');
+                    if (seconds < 0) {
+                        if (videoPlayer.currentTime >= Math.abs(seconds)) {
+                            videoPlayer.currentTime += seconds;
+                        } else {
+                            videoPlayer.currentTime = 0;
+                        }
+                    } else {
+                        if (videoPlayer.currentTime + seconds <= videoPlayer.duration) {
+                            videoPlayer.currentTime += seconds;
+                        } else {
+                            videoPlayer.currentTime = videoPlayer.duration;
+                        }
+                    }
+                } else if (type === 'audio') {
+                    const audioPlayer = document.getElementById('audio-player');
+                    if (seconds < 0) {
+                        if (audioPlayer.currentTime >= Math.abs(seconds)) {
+                            audioPlayer.currentTime += seconds;
+                        } else {
+                            audioPlayer.currentTime = 0;
+                        }
+                    } else {
+                        if (audioPlayer.currentTime + seconds <= audioPlayer.duration) {
+                            audioPlayer.currentTime += seconds;
+                        } else {
+                            audioPlayer.currentTime = audioPlayer.duration;
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Rozbudowany Edytor Grafiki</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+		.btn {
+			margin-top: 1px;
+			background-color: #00234a;
+			color: #17a6b3;
+			font-size: 10px;
+		}
+
+		.btn-file:hover {
+			background-color: green;
+			color: red;
+			font-size: 12px;
+		}
+
+		.btn:hover {
+			font-size: 12px;
+			color: #ff0000;
+		}
+
+        .ruler-container {
+            position: relative;
+        }
+
+        .horizontal-ruler {
+            position: absolute;
+            top: 0;
+            left: 40px; /* Odstęp na szerokość pionowej linijki */
+            width: calc(100% - 40px);
+            height: 40px; /* Wysokość linijki */
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #000;
+            z-index: 5;
+        }
+
+        .vertical-ruler {;
+            position: absolute;
+            top: 40px; /* Odstęp na wysokość poziomej linijki */
+            left: 0;
+            width: 40px; /* Szerokość linijki */
+            height: calc(100% - 40px);
+            background-color: #f0f0f0;
+            border-right: 1px solid #000;
+            z-index: 5;
+        }
+
+        .canvas-container {
+            position: relative;
+            margin-left: 0; /* Usuń margines, aby canvas był wyrównany z linijkami */
+            margin-top: 40px; /* Odstęp od góry dla poziomej linijki */
+            overflow: auto;
+            border: 1px solid black;
+        }
+
+        .canvas-container canvas {
+            display: block;
+            margin: auto;
+            max-width: 200%; /* Canvas nigdy nie przekroczy szerokości kontenera */
+            max-height: 200%; /* Canvas dostosuje się do wysokości kontenera */
+        }
+
+        #canvas {
+            background-color: white;
+        }
+
+        .toolbar {
+            margin-bottom: 10px;
+			margin-left: 20px;
+            position: relative;
+            z-index: 10; /* Toolbar ma wyższy z-index, więc jest widoczny nad canvas */
+        }
+
+        .stats {
+            margin-top: 10px;
+            margin-left: 20px;
+			color: yellow;
+            z-index: 5; /* Dodatkowe statystyki też mają wyższy z-index */
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+        }
+
+        .item {
+            flex: 1;
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+
+
+		.modal-xl {
+            max-width: 90%;
+        }
+        .modal-header, .modal-footer {
+            background-color: #1a1a2e;
+            color: #ffcc99;
+        }
+        .modal-body {
+            background-color: #16213e;
+            color: #ffcc99;
+            display: flex;
+
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .modal-body input {
+            background-color: #1a1a2e;
+            color: #ffcc99;
+            border: 1px solid #ffcc99;
+        }
+        .folder-tree {
+            flex: 1;
+            max-width: 25%;
+            overflow-y: auto;
+            border-right: 1px solid #ffcc99;
+            padding-right: 10px;
+        }
+        .file-browser {
+            flex: 3;
+            padding-left: 10px;
+        }
+        .file-browser img {
+            max-width: 100%;
+            height: auto;
+        }
+        .folder, .file {
+            cursor: pointer;
+        }
+        .folder ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+        .folder ul.collapsed {
+            display: none;
+        }
+
+
+    </style>
+</head>
+<body style="background-color: #0e0124">
+    <div class="row">
+        <div class="toolbar btn-group mb-3" role="group">
+			<button id="fileModalBtn" class="btn-secondary btn-file">Plik</button>
+            <button id="brush" class="btn btn-primary">Pędzel</button>
+            <button id="eraser" class="btn btn-primary">Gumka</button>
+            <button id="rectangle" class="btn btn-primary">Prostokąt</button>
+            <button id="grayscale" class="btn btn-primary">Grayscale</button>
+            <button id="invert" class="btn btn-primary">Invert</button>
+            <button id="sepia" class="btn btn-primary">Sepia</button>
+            <button id="blur" class="btn btn-primary">Blur</button>
+            <button id="sharpen" class="btn btn-primary">Sharpen</button>
+            <button id="brightness" class="btn btn-primary">Jasność</button>
+            <button id="contrast" class="btn btn-primary">Kontrast</button>
+            <button id="saturation" class="btn btn-primary">Nasycenie</button>
+            <button id="hue" class="btn btn-primary">Hue Rotation</button>
+
+<button id="polygon" class="btn btn-primary">Wielokąt</button>
+            <button id="undo" class="btn btn-warning">Cofnij</button>
+            <button id="redo" class="btn btn-warning">Ponów</button>
+            <button id="save" class="btn btn-success">Zapisz</button>
+            <input type="color" id="colorPicker" class="form-control">
+            <input type="range" id="brushSize" class="form-control" min="1" max="10" value="5">
+        </div>
+    </div>
+
+	<div class="row">
+        <div class="ruler-container">
+            <canvas class="horizontal-ruler"></canvas>
+            <canvas class="vertical-ruler"></canvas>
+            <div class="canvas-container">
+                <canvas id="canvas" width="1920" height="1080"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row stats container">
+        <span id="imageStats">Szerokość: 800 px, Wysokość: 600 px</span>
+        <input type="number" id="canvasWidth" class="form-control item" value="1920">
+        <input type="number" id="canvasHeight" class="form-control item" value="1080">
+        <input type="range" id="scale" class="form-control item" min="10" max="400" value="60">
+    </div>
+
+
+	<!-- Modal -->
+    <div class="modal fade" id="fileBrowserModal" tabindex="-1" role="dialog" aria-labelledby="fileBrowserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fileBrowserModalLabel">File Browser</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="folder-tree">
+                        <div class="folder" data-folder-path="{{ folder }}">
+                            <span>Root</span>
+                            <ul class="collapsed">
+                                <!-- Folder structure will be dynamically loaded here -->
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="file-browser">
+                        <div class="file-list">
+                            <!-- File list will be dynamically loaded here -->
+                        </div>
+                        <div class="file-preview">
+                            <ul id="file-list" class="list-group modal-body">
+								<!-- Lista plików zostanie wygenerowana tutaj -->
+							</ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Select</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+
+
+
+            // Toggle folder collapse
+            $(document).on('click', '.folder > span', function() {
+                $(this).siblings('ul').toggleClass('collapsed');
+            });
+
+            // Load file list and preview
+            $(document).on('click', '.file', function() {
+                var filePath = $(this).data('file-path');
+                if (filePath.match(/\.(jpeg|jpg|gif|png)$/)) {
+                    $('#filePreview').attr('src', filePath);
+                } else {
+                    $('#filePreview').attr('src', '');
+                }
+            });
+
+            // Example of dynamically loading folder structure and files
+            // This should be replaced with actual AJAX calls to load data
+            $('.folder[data-folder-path="/"] ul').html(`
+                <li class="folder" data-folder-path="/folder1">
+                    <span>Folder 1</span>
+                    <ul class="collapsed">
+                        <li class="file" data-file-path="/folder1/file1.txt">file1.txt</li>
+                        <li class="file" data-file-path="/folder1/image1.jpg">image1.jpg</li>
+                    </ul>
+                </li>
+                <li class="folder" data-folder-path="/folder2">
+                    <span>Folder 2</span>
+                    <ul class="collapsed">
+                        <li class="file" data-file-path="/folder2/file2.txt">file2.txt</li>
+                        <li class="file" data-file-path="/folder2/image2.png">image2.png</li>
+                    </ul>
+                </li>
+            `);
+        });
+	</script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            let canvas = $('#canvas')[0];
+            let ctx = canvas.getContext('2d');
+            let img = new Image();
+            let painting = false;
+            let brushSize = $('#brushSize').val();
+            let color = $('#colorPicker').val();
+            let tool = 'brush';
+            let history = [];
+            let historyIndex = -1;
+            let startX, startY;
+
+			let sides = 5; // Domyślna liczba boków
+
+
+
+ function drawRuler(canvas, isHorizontal) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#000";
+            ctx.font = "10px Arial";
+
+            if (isHorizontal) {
+                for (let i = 0; i < canvas.width; i += 10) {
+                    if (i % 50 === 0) {
+                        ctx.fillText(i, i + 2, 10);
+                        ctx.moveTo(i, 15);
+                        ctx.lineTo(i, 30);
+                    } else {
+                        ctx.moveTo(i, 20);
+                        ctx.lineTo(i, 30);
+                    }
+                }
+            } else {
+                for (let i = 0; i < canvas.height; i += 10) {
+                    if (i % 50 === 0) {
+                        ctx.fillText(i, 2, i + 10);
+                        ctx.moveTo(15, i);
+                        ctx.lineTo(30, i);
+                    } else {
+                        ctx.moveTo(20, i);
+                        ctx.lineTo(30, i);
+                    }
+                }
+            }
+            ctx.stroke();
+        }
+
+        const horizontalRuler = document.querySelector('.horizontal-ruler');
+        const verticalRuler = document.querySelector('.vertical-ruler');
+
+        horizontalRuler.width = document.querySelector('.canvas-container').offsetWidth;
+        horizontalRuler.height = 40;
+        verticalRuler.height = document.querySelector('.canvas-container').offsetHeight;
+        verticalRuler.width = 40;
+
+        drawRuler(horizontalRuler, true);
+        drawRuler(verticalRuler, false);
+
+        window.addEventListener('resize', function() {
+            horizontalRuler.width = document.querySelector('.canvas-container').offsetWidth;
+            verticalRuler.height = document.querySelector('.canvas-container').offsetHeight;
+            drawRuler(horizontalRuler, true);
+            drawRuler(verticalRuler, false);
+        });
+
+
+			$('#canvasWidth').change(function() {
+                canvas.width = $(this).val();
+                updateStats();
+                saveState();
+            });
+
+            $('#canvasHeight').change(function() {
+                canvas.height = $(this).val();
+                updateStats();
+                saveState();
+            });
+
+			$('#scale').change(function() {
+                let scale = $(this).val() / 100;
+                canvas.style.transform = `scale(${scale})`;
+				updateStats();
+            });
+
+
+$('#canvasWidth').val(1920).trigger('change');
+$('#canvasHeight').val(1080).trigger('change');
+$('#scale').val(60).trigger('change');
+
+
+	var imgFile = "{{ file }}";
+	var folder = "{{ folder }}";
+	var imgFiles = [];
+
+	{% for img in image_files %}
+		imgFiles.push("{{ img }}");
+	{% endfor %}
+
+
+
+$('#fileModalBtn').on('click', function() {
+				
+				$('#file-list').empty();
+				
+				function getFileName(fullPath) {
+					// Zamień wszystkie ukośniki na standardowy ukośnik
+					var normalizedPath = fullPath.replace(/\\/g, '/');
+					// Podziel ścieżkę na części i zwróć ostatni element
+					var parts = normalizedPath.split('/');
+					return parts[parts.length - 1];
+				}
+
+				if (imgFiles.length > 0) {
+					// Dla każdego pliku obrazkowego dodaj element listy
+					imgFiles.forEach(function(img) {
+						let imgPath = '/file?path='+ img;
+						var listItem = '<li class="list-group-item modal-body" data-img-path="/file?path='+ img +'"><img src="/file?path=' + img + '" alt="' + img + '" style="width: 50px; height: 50px; margin-right: 10px;">' + getFileName(img) + '</li>';
+						$('#file-list').append(listItem);
+					});
+				} else {
+					$('#file-list').append("<li class='list-group-item'>No files found</li>");
+				}
+
+				$('#file-list li').on('click', function() {
+					var canvas = document.getElementById('canvas');
+					var ctx = canvas.getContext('2d');
+					var img = new Image();
+					img.onload = function() {
+						ctx.clearRect(0, 0, canvas.width, canvas.height); // Wyczyść canvas
+						ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // Rysuj obraz na canvas
+					};
+					img.onerror = function() {
+						alert('Błąd ładowania obrazu');
+					};
+					alert($(this).attr("data-img-path"));
+					img.src = $(this).attr("data-img-path"); // Ustaw źródło obrazu
+					
+					$('#canvasHeight').val(img.height).trigger('change');
+					$('#canvasWidth').val(img.width).trigger('change');
+					$('#scala').val(60).trigger('change');
+					updateStats();
+					
+					$('#fileBrowserModal').modal('hide');
+				});
+
+				window.$('#fileBrowserModal').modal();
+});
+
+
+
+            function saveState() {
+                history = history.slice(0, historyIndex + 1);
+                history.push(canvas.toDataURL());
+                historyIndex++;
+            }
+
+            function restoreState(index) {
+                let img = new Image();
+                img.src = history[index];
+                img.onload = function() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                }
+            }
+
+            function updateStats() {
+                $('#imageStats').text(`${canvas.width} x ${canvas.height}, ${scale.value}% `);
+            }
+
+
+function drawPolygon(ctx, x, y, radius, sides, startAngle, anticlockwise) {
+    if (sides < 3) return;
+    let a = (Math.PI * 2) / sides;
+    ctx.beginPath();
+    ctx.moveTo(x + radius * Math.cos(startAngle), y + radius * Math.sin(startAngle));
+    for (let i = 1; i < sides; i++) {
+        ctx.lineTo(x + radius * Math.cos(startAngle + i * a), y + radius * Math.sin(startAngle + i * a));
+    }
+    ctx.closePath();
+    ctx.stroke();
+}
+
+$('#polygon').click(function() {
+    tool = 'polygon';
+});
+
+$('#sides').change(function() {
+    sides = $(this).val();
+});
+
+
+            $('#upload').change(function(e) {
+                let reader = new FileReader();
+                reader.onload = function(event) {
+                    img.onload = function() {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+                        saveState();
+                        updateStats();
+                    }
+                    img.src = event.target.result;
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            });
+
+            $('#brush').click(function() {
+                tool = 'brush';
+            });
+
+            $('#eraser').click(function() {
+                tool = 'eraser';
+            });
+
+            $('#rectangle').click(function() {
+                tool = 'rectangle';
+            });
+
+            $('#colorPicker').change(function() {
+                color = $(this).val();
+            });
+
+            $('#brushSize').change(function() {
+                brushSize = $(this).val();
+            });
+
+            $('#canvas').mousedown(function(e) {
+                painting = true;
+                startX = e.offsetX;
+                startY = e.offsetY;
+                if (tool === 'brush' || tool === 'eraser') {
+                    ctx.beginPath();
+                    ctx.moveTo(startX, startY);
+                }
+            });
+
+            $('#canvas').mousemove(function(e) {
+                if (painting) {
+                    if (tool === 'brush') {
+                        ctx.strokeStyle = color;
+                        ctx.lineWidth = brushSize;
+                        ctx.lineTo(e.offsetX, e.offsetY);
+                        ctx.stroke();
+                    } else if (tool === 'eraser') {
+                        ctx.strokeStyle = '#FFFFFF';
+                        ctx.lineWidth = brushSize * 2;
+                        ctx.lineTo(e.offsetX, e.offsetY);
+                        ctx.stroke();
+                    } else if (tool === 'polygon') {
+						ctx.clearRect(0, 0, canvas.width, canvas.height);
+						restoreState(historyIndex);
+						let radius = Math.sqrt(Math.pow(e.offsetX - startX, 2) + Math.pow(e.offsetY - startY, 2));
+						drawPolygon(ctx, startX, startY, radius, sides, 0, false);
+					}
+                }
+            });
+
+            $('#canvas').mouseup(function(e) {
+                if (tool === 'rectangle' && painting) {
+                    let width = e.offsetX - startX;
+                    let height = e.offsetY - startY;
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = brushSize;
+                    ctx.strokeRect(startX, startY, width, height);
+                }
+				if (tool === 'polygon' && painting) {
+					let radius = Math.sqrt(Math.pow(e.offsetX - startX, 2) + Math.pow(e.offsetY - startY, 2));
+					drawPolygon(ctx, startX, startY, radius, sides, 0, false);
+					saveState();
+				}
+                painting = false;
+                ctx.closePath();
+                saveState();
+            });
+
+            $('#canvas').mouseleave(function() {
+                painting = false;
+                ctx.closePath();
+            });
+
+            function applyFilter(filter) {
+                ctx.filter = filter;
+                ctx.drawImage(img, 0, 0);
+                saveState();
+            }
+
+            $('#grayscale').click(function() {
+                applyFilter('grayscale(100%)');
+            });
+
+            $('#invert').click(function() {
+                applyFilter('invert(100%)');
+            });
+
+            $('#sepia').click(function() {
+                applyFilter('sepia(100%)');
+            });
+
+            $('#blur').click(function() {
+                applyFilter('blur(5px)');
+            });
+
+            $('#sharpen').click(function() {
+                // Sharpening filter requires a different approach
+                let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                let data = imageData.data;
+                let w = canvas.width;
+                let h = canvas.height;
+
+                let weights = [0, -1, 0, -1, 5, -1, 0, -1, 0];
+                let side = Math.round(Math.sqrt(weights.length));
+                let halfSide = Math.floor(side / 2);
+
+                let output = ctx.createImageData(w, h);
+                let dst = output.data;
+
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        let sy = y;
+                        let sx = x;
+                        let dstOff = (y * w + x) * 4;
+                        let r = 0, g = 0, b = 0;
+
+                        for (let cy = 0; cy < side; cy++) {
+                            for (let cx = 0; cx < side; cx++) {
+                                let scy = sy + cy - halfSide;
+                                let scx = sx + cx - halfSide;
+                                if (scy >= 0 && scy < h && scx >= 0 && scx < w) {
+                                    let srcOff = (scy * w + scx) * 4;
+                                    let wt = weights[cy * side + cx];
+                                    r += data[srcOff] * wt;
+                                    g += data[srcOff + 1] * wt;
+                                    b += data[srcOff + 2] * wt;
+                                }
+                            }
+                        }
+                        dst[dstOff] = r;
+                        dst[dstOff + 1] = g;
+                        dst[dstOff + 2] = b;
+                        dst[dstOff + 3] = 255;
+                    }
+                }
+                ctx.putImageData(output, 0, 0);
+                saveState();
+            });
+
+            $('#brightness').click(function() {
+                applyFilter('brightness(150%)');
+            });
+
+            $('#contrast').click(function() {
+                applyFilter('contrast(150%)');
+            });
+
+            $('#saturation').click(function() {
+                applyFilter('saturate(150%)');
+            });
+
+            $('#hue').click(function() {
+                applyFilter('hue-rotate(90deg)');
+            });
+
+            $('#undo').click(function() {
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    restoreState(historyIndex);
+                }
+            });
+
+            $('#redo').click(function() {
+                if (historyIndex < history.length - 1) {
+                    historyIndex++;
+                    restoreState(historyIndex);
+                }
+            });
+
+            $('#save').click(function() {
+                let link = document.createElement('a');
+                link.download = 'image.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+
+        });
+    </script>
+</body>
+</html>

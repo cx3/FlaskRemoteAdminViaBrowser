@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+
+body {
+    background-color: #121212;
+    color: #00FF00;
+}
+
+.card {
+    background-color: #1E1E1E;
+    border-color: #333333;
+    color: #00FF00;
+}
+
+.form-control {
+    background-color: #333333;
+    color: #00FF00;
+    border-color: #444444;
+}
+
+.form-control:focus {
+    background-color: #000000;
+    color: #FFFF00;
+}
+
+.btn-primary {
+    background-color: #444444;
+    border-color: #555555;
+}
+
+.btn-primary:hover {
+    background-color: #555555;
+}
+
+.card-header {
+    background-color: #333333;
+    border-color: #444444;
+    color: #00FF00;
+}
+
+.chat-panel,
+.user-list-panel {
+    height: 500px;
+    overflow-y: auto;
+}
+</style>
+
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Remote Desktop Admin Panel</div>
+                    <div class="card-body">
+                        {% if error %}
+                            <div class="alert alert-danger" role="alert">
+                                {{ error }}
+                            </div>
+                        {% endif %}
+                        <form id="login-form" method="POST" action="/rdp/login">
+                            <div class="form-group">
+                                <label for="user">Username</label>
+                                <input type="text" class="form-control" id="user" name="user" value="admin" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="pass">Password</label>
+                                <input type="password" class="form-control" id="pass" name="pass" value="admin" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="loginBtn">Login</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#login-form').submit(function(event) {
+				event.preventDefault();
+				function hash(text) {
+                    let result = text;
+                    for (let i=0;  i<358;  ++i) {
+                        result = CryptoJS.SHA512(result).toString(CryptoJS.enc.Hex);
+                    }
+                    return result;
+                }
+				function passwordToServer(password) {
+					return hash(password.slice(0, 32));
+				}
+                var password = $('#pass').val();
+                var hashedPassword = hash(password);
+				var serverPassword = passwordToServer(hashedPassword);
+                $('#pass').val(serverPassword);
+                this.submit();
+            });
+        });
+    </script>
+</body>
+</html>

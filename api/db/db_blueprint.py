@@ -45,13 +45,13 @@ def get_records(table_name):
 
 
 def get_model_by_table_name(table_name):
-    return db['instance'].metadata.tables[table_name]
-    class Model(db_.Model):
+    '''class Model(db_.Model):
         __tablename__ = table_name
         id = db_.Column(db_.Integer, primary_key=True)
         # Dodaj inne kolumny zgodnie ze strukturą tabeli
 
-    return Model
+    return Model'''
+    return db['instance'].metadata.tables[table_name]
 
 
 # Przykład użycia
@@ -182,3 +182,6 @@ def edit_record(table_name, id):
     else:
         columns = get_columns(table_name)
         return render_template('db_edit.html', table_name=table_name, record=record, columns=columns)
+
+# AI IE EDGE / CHAT GPT 4   POWERED CODE:
+

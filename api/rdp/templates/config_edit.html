@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edytor słownika - {{ name }}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: #00FF00;
+        }
+        .form-control {
+            background-color: #333333;
+            color: #FFFF00;
+            border-color: #444444;
+        }
+        .form-control:focus {
+            border-color: #FF0000;
+            box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25);
+        }
+        .btn-primary {
+            background-color: #444444;
+            border-color: #555555;
+            color: #00FF00;
+        }
+        .btn-primary:hover {
+            background-color: #555555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h3>Edytor słownika - {{ name }}</h3>
+        <form method="POST" action="/rdb/dict/{{ name }}">
+            {% for key, value in dictionary.items() %}
+                <div class="form-group">
+                    <label for="{{ key }}">{{ key }}</label>
+                    <input type="text" class="form-control" id="{{ key }}" name="{{ key }}" value="{{ value }}">
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+        </form>
+    </div>
+</body>
+</html>
