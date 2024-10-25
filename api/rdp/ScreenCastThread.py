@@ -7,25 +7,30 @@ import pyautogui
 from PIL import ImageDraw
 
 from api.app.routes import socketio
-
-
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super().__call__(*args, **kwargs)
-        return cls._instances[cls]
+from api.app.utils import Singleton
 
 
 class ScreenCastThread(metaclass=Singleton):
-    def __init__(self):  # admin_required_decorator: Callable
+    def __init__(self, guest_casting=False):  # admin_required_decorator: Callable
         print('ScreenCastThread.__init__()')
         self.stop_event = threading.Event()
         # self.admin_required_decorator = admin_required_decorator
 
+        self.guest_casting = guest_casting
         self.thread = threading.Thread(target=self.run, args=(), kwargs={})
         self.thread.daemon = False
+
+        self._admin_connected = False
+        self._guest_connected = False
+
+    def set_admin_connected(self, state: bool):
+        self._admin_connected = state
+
+    def set_guest_connected(self, state: bool):
+        self._guest_connected = state
+
+    def set_guest_casting(self, new_state=False):
+        self.guest_casting = new_state
 
     def run(self):
         print('@@@@@@@@@@@@@ ScreenCastThread run() invoked')
@@ -41,6 +46,9 @@ class ScreenCastThread(metaclass=Singleton):
             img_base64 = base64.b64encode(img_bytes).decode('utf-8')
 
             socketio.emit('image', {'image': img_base64}, namespace='/rdp')
+
+            if self.guest_casting:
+                socketio.emit('image', {'image': img_base64}, namespace='/cast')
 
             time.sleep(0.5)
         print('@@@@@@@@@@@@@ ScreenCastThread run() infinity while-loop finished')

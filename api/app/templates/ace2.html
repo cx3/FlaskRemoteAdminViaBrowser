@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ace Editor {{ file }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-monokai.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-modelist.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            margin: 0;
+        }
+        #editor {
+            width: 90%;
+            height: 100%;
+        }
+        #button-panel {
+            width: 10%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .button {
+            flex: 1;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="editor">Some initial text...</div>
+
+    <!-- Panel na przyciski -->
+    <div id="button-panel">
+        <button class="button">Save</button>
+        <button class="button">Save as</button>
+        <button class="button">New empty</button>
+        <button class="button">Open...</button>
+    </div>
+
+    <script>
+        var editor = ace.edit("editor");
+        var fileExt = "{{ ext }}";
+
+        editor.setTheme("ace/theme/monokai");
+        $.ajax({
+            url: "{{ url_for('get_file_route', path=file) }}",
+            method: 'get',
+            dataType: 'text',
+            success: function (data) {
+                editor.setValue(data); // Ustawia zawartość pliku w edytorze
+            },
+            error: function () {
+                alert('Wystąpił błąd podczas wczytywania pliku.');
+            }
+        });
+
+        var modelist = ace.require("ace/ext/modelist");
+
+        function setLanguageByFileExtension(fileName) {
+            var mode = modelist.getModeForPath(fileName).mode;
+            editor.session.setMode(mode);
+        }
+
+        setLanguageByFileExtension("{{ file }}");
+    </script>
+</body>
+</html>

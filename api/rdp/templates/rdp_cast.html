@@ -2,9 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>RDP Admin</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #screen {
+            border: 2px solid #ffffff;
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
 </head>
 <body>
-rdb_cast.html
+    <canvas id="screen"></canvas>
+    <script>
+        const socket = io('/cast');
+        const canvas = document.getElementById('screen');
+        const ctx = canvas.getContext('2d');
+
+        socket.on('image', (data) => {
+            console.log("image sent from server");
+            const img = new Image();
+            img.src = 'data:image/png;base64,' + data.image;
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+            };
+        });
+    </script>
 </body>
 </html>

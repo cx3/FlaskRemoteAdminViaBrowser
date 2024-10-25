@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Viewer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body, li, ul, .list-group-item {
+            background-color: #0c041c;
+            color: #09c1de;
+            justify-content: flex-start;
+            align-items: left;
+        }
+        a {
+            color: #aba505;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        .left-panel {
+            width: 15%;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            height: 88vh;
+        }
+        .right-panel {
+            width: 80%;
+            padding: 10px;
+        }
+        .top-panel {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .modal-content {
+            background-color: #1e1e1e;
+            color: white;
+        }
+        .btn-close {
+            filter: invert(1);
+        }
+        .modal-body {
+            overflow-y: auto;
+        }
+        .breadcrumb {
+            background-color: #041426;
+        }
+        .breadlink {
+            color: #ff7b00;
+        }
+        .breadlink:hover {
+          background-color: #e63115;
+          color: #c4bf04;
+          font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-panel">
+        <button class="btn btn-primary" id="btnChangeDb">Change DB</button>
+        <button class="btn btn-secondary" id="btnUploadDb">Upload DB File</button>
+        <button class="btn btn-success" id="btnSchema">Schema</button>
+        <button class="btn btn-info btn-outline-warning" id="btnConnectDbServer">Connect</button>
+        <button class="btn btn-outline-danger btn-warning" id="btnUploadCSV_XLS">Import CSV/XLS</button>
+    </div>
+    <div class="row">
+        <div class="left-panel">
+            <h5>Tables</h5>
+            <ul id="table-list" class="list-group">
+                <!-- Links will be generated here -->
+            </ul>
+            <input type="checkbox" id="extendedView" checked><label for="extendedView">Extended view</label>
+            <button class="btn btn-outline-success" id="btnNewTable">Create new table</button>
+        </div>
+        <div class="right-panel">
+            <iframe id="table-viewer" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+    </div>
+
+
+
+    <!-- Modal Structure -->
+    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Modal title</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Modal Body will be loaded dynamically -->
+                </div>
+                <div class="modal-footer" id="modalFooter">
+                    <!-- Modal Footer will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload File</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="fileInput">
+                    <label class="custom-file-label" for="fileInput">Choose file</label>
+                </div>
+                <div class="progress mt-3" style="display: none;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="uploadSelectedFilesButton">Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+
+$(document).ready(function() {
+    let viewLinkPrefix = '/db/table/fk/';
+
+    $.getJSON('/db/info/table_names', function(data) {
+        $.each(data.result, function(index, tableName) {
+            $('#table-list').append(
+                `<li class="list-group-item">
+                    <a href="#" class="table-link" data-table="${tableName}">${tableName}</a>
+                </li>`
+            );
+        });
+        $('.table-link').on('click', function(e) {
+            e.preventDefault();
+            var tableName = $(this).data('table');
+            $('#table-viewer').attr('src', viewLinkPrefix + tableName);
+        });
+        $('.table-link').first().click();
+    });
+
+    $('#extendedView').change(function() {
+        if ($(this).is(':checked')) {
+            viewLinkPrefix = '/db/table/fk/';
+        } else {
+            viewLinkPrefix = '/db/table/';
+        }
+    });
+
+    $('#btnChangeDb').on('click', function() {
+        alert('NotImplementedError');
+    });
+
+    $('#btnUploadDb').on('click', function() {
+        alert('NotImplementedError');
+    });
+
+    $('#btnSchema').on('click', function() {
+        alert('NotImplementedError');
+    });
+
+    $('#btnConnectDbServer').on('click', function() {
+        alert('NotImplementedError');
+    });
+
+    $('#btnUploadCSV_XLS').on('click', function() {
+        let x = new bootstrap.Modal(document.getElementById('uploadModal'));
+        x.show();
+    });
+
+    $('#btnNewTable').on('click', function() {
+        //window.open('/db/create_table', '_blank');
+        $('#table-viewer').attr('src', '/db/create_table');
+    });
+
+
+
+    function showModalOk(message) {
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const modalFooter = document.getElementById('modalFooter');
+
+        modalTitle.innerHTML = 'Information';
+        modalBody.innerHTML = `<p>${message}</p>`;
+        modalFooter.innerHTML = `<button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>`;
+
+        let x = new bootstrap.Modal(document.getElementById('myModal'));
+        x.show();
+    }
+
+    // Show File Selection Modal. Callback is a function with one argument
+    function showModalSelectFile(startDir, callback) {
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const modalFooter = document.getElementById('modalFooter');
+
+        modalTitle.innerHTML = `
+            <div class="row">
+                <div class="col">
+                    <nav aria-label="breadcrumb" id="breadcrumbNav">
+                        <ol class="breadcrumb"></ol>
+                    </nav>
+                </div>
+            </div>`;
+
+        modalBody.innerHTML = `
+            <div class="row">
+                <div class="col-3" style="border-right: 1px solid #444; max-height: 300px; overflow-y: auto;">
+                    <ul class="list-group" id="folderList"></ul>
+                </div>
+                <div class="col-9" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-dark table-striped">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Icon</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Size</th>
+                                <th>Created At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fileList"></tbody>
+                    </table>
+                </div>
+            </div>`;
+
+        if (startDir === undefined) {
+            startDir = "~/Desktop";
+        }
+
+        function renderBreadcrumb(currentPath) {
+            const breadcrumbNav = document.getElementById('breadcrumbNav').querySelector('ol');
+            breadcrumbNav.innerHTML = ''; // Clear previous breadcrumb
+
+            const dirs = currentPath.split('/');
+            const pathParts = currentPath.split('/').filter(part => part); // Split and remove empty parts
+            let cumulativePath = '';
+
+            pathParts.forEach((folder, index) => {
+                cumulativePath += `${folder}/`;
+                let li = document.createElement('li');
+                li.classList.add('breadcrumb-item');
+
+                if (index === pathParts.length - 1) {
+                    li.classList.add('active'); // Last part should be active
+                    li.textContent = folder;
+                } else {
+                    let a = document.createElement('a');
+                    a.href = '#'; // Avoid full page reload
+                    a.textContent = folder;
+                    a.setAttribute("style", "color: orange;");
+                    a.setAttribute("data-folder", cumulativePath);
+                    a.onclick = function(e) {
+                        e.preventDefault();
+                        renderView(a.getAttribute("data-folder")); // Navigate to this part of the path
+                    };
+                    li.appendChild(a);
+                }
+                breadcrumbNav.appendChild(li);
+            });
+        }
+
+        function renderView(browseDir) {
+            $.ajax({
+                type: 'GET',
+                url: '/get_dir_content?server_dir=' + browseDir,
+                contentType: 'application/json',
+            }).done((data) => {
+                let content = data["content"];
+                let dirs = content["dirs"];
+                let files = content["files"];
+
+                renderBreadcrumb(browseDir);
+
+                // Render folder list
+                let folderList = document.getElementById('folderList');
+                folderList.innerHTML = ''; // Clear previous folder list
+                dirs.forEach((dir) => {
+                    let li = document.createElement('li');
+                    li.classList.add('list-group-item');
+                    li.textContent = dir.name;
+                    li.setAttribute("data-full-path", dir.full_path);
+                    li.ondblclick = function() {
+                        renderView(dir.full_path); // Reload view for selected folder
+                    };
+                    folderList.appendChild(li);
+                });
+
+                // Render file table
+                let fileList = document.getElementById('fileList');
+                fileList.innerHTML = ''; // Clear previous file list
+                files.forEach((file, index) => {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><input type="radio" name="fileSelect" id="fileRadio${index}" data-full-path="${file.full_path}"></td>
+                        <td><img src="${file.icon}" alt="icon" style="width: 20px;"></td>
+                        <td>${file.name}</td>
+                        <td>${file.type}</td>
+                        <td>${(file.size / 1024).toFixed(2)} KB</td>
+                        <td>${new Date(file.created_at).toLocaleDateString()}</td>`;
+
+                    // On click of the row, select the corresponding radio button
+                    tr.onclick = function() {
+                        // Remove active class from all rows
+                        document.querySelectorAll('#fileList tr').forEach(el => el.classList.remove('table-active'));
+                        // Add active class to the clicked row
+                        tr.classList.add('table-active');
+                        // Select the corresponding radio button
+                        document.getElementById(`fileRadio${index}`).checked = true;
+                    };
+
+                    // Append the row to the file list
+                    fileList.appendChild(tr);
+                });
+            }).fail((err) => {
+                console.error(err);
+            });
+        }
+
+        // Initial load
+        renderView(startDir);
+
+        modalFooter.innerHTML = `<button type="button" class="btn btn-primary" id="selectFileBtn">Select File</button>`;
+
+        var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+        myModal.show();
+
+        document.getElementById('selectFileBtn').onclick = function() {
+            const selectedFile = document.querySelector('#fileList .table-active');
+            if (selectedFile) {
+                const filePath = selectedFile.querySelector('input[type="radio"]').getAttribute('data-full-path');
+                if (callback) callback(filePath);
+            }
+            myModal.hide();
+        };
+    }
+
+    
+
+
+$('#uploadSelectedFilesButton').click(function () {
+                var fileInput = $('#fileInput')[0];
+                if (fileInput.files.length === 0) {
+                    alert('Please select a file to upload.');
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('dest_dir', "{{ server_dir }}/api/db/dbs");
+                formData.append('file', fileInput.files[0]);
+
+                $('.progress').show();
+                $('.progress-bar').css('width', '0%').attr('aria-valuenow', 0);
+
+                $.ajax({
+                    url: '/db/upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    xhr: function () {
+                        var xhr = new window.XMLHttpRequest();
+                        xhr.upload.addEventListener('progress', function (evt) {
+                            if (evt.lengthComputable) {
+                                var percentComplete = evt.loaded / evt.total;
+                                percentComplete = parseInt(percentComplete * 100);
+                                $('.progress-bar').css('width', percentComplete + '%').attr('aria-valuenow', percentComplete);
+                            }
+                        }, false);
+                        return xhr;
+                    },
+                    success: function (response) {
+                        $('.progress').hide();
+                        $('.progress-bar').css('width', '0%').attr('aria-valuenow', 0);
+                        $('#fileInput').val('');
+                        $('.custom-file-label').html('Choose file');
+                        $('#uploadModal').modal('hide');
+                        $('#table-viewer').attr('src', '/db/uploaded?file=' + "{{ server_dir }}/api/db/dbs/" + response.filename);
+                    },
+                    error: function (xhr, status, error) {
+                        alert('Error: ' + error);
+                        $('.progress').hide();
+                        $('.progress-bar').css('width', '0%').attr('aria-valuenow', 0);
+                    }
+                });
+            });
+
+
+
+
+});//  document ready...
+
+
+    </script>
+</body>
+</html>

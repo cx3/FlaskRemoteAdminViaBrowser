@@ -5,11 +5,10 @@ import json
 import base64
 import threading
 from hashlib import sha512
-
 from functools import wraps
 from typing import Optional
 
-from flask import Blueprint, current_app, render_template, request, send_from_directory, jsonify
+from flask import Blueprint, current_app, render_template, request, send_from_directory, jsonify, redirect, url_for
 from werkzeug.utils import secure_filename
 from PIL import ImageDraw
 import pyautogui
@@ -30,7 +29,7 @@ config = {
                  'df95bfe6d8f55b4805d976745e4d'
     },
 
-    'spectators_allowed': False,
+    'spectators_allowed': True,
     'spectators_allowed_without_password': True,
     'forbidden_ips': ["127.0.0.1"],
 
@@ -127,7 +126,7 @@ def login_route():
                     if args['user'] == user and passwd == args['pass']:
                         config['logged_users'][args['user']] = request.remote_addr
                         print(f'User "{user}" at ip:{request.remote_addr} has logged in')
-                        return js_redirect('/rdp/cast')
+                        return js_redirect('/rdp/guest/casting')
             else:
                 print(f'Somebody at {request.remote_addr} tried to login but failed due to spectators are disabled')
                 return 'Spectators are disabled by admin'
@@ -192,7 +191,7 @@ def get_dict_by_name(name: str):
 @rdp_bp.route('/', **pg)
 @admin_required
 def main_route():
-    return js_redirect('/rdp/admin')
+    return js_redirect('/rdp/config')
 
 
 @rdp_bp.route('/casting', methods=['POST', 'GET'])
@@ -316,15 +315,22 @@ def logout_all_route():
     return js_redirect('/login?next=/cast')
 
 
-@rdp_bp.route('/cast')
+@rdp_bp.route('/guest/casting')
 @guard
-def cast():
+def route_guest_casting():
+    if config['spectators_allowed']:
+        obj = config.get('rdp_thread', None)
+        if isinstance(obj, Sct.ScreenCastThread):
+            obj.set_guest_casting(True)
+
     return render_template('rdp_cast.html')
 
 
 @rdp_bp.route('/admin', **pg)
 @admin_required
 def rdp_admin_route():
+    if not isinstance(config.get('rdp_thread', None), Sct.ScreenCastThread):
+        return js_redirect('/rdp/config?next=/rdp/admin')
     return render_template('rdp_admin.html')
 
 
@@ -374,22 +380,30 @@ def upload_route():
 @socketio.on('connect', namespace='/cast')
 def connect_cast():
     print('Client connected to /cast')
+    if isinstance(config.get('rdp_thread', None), Sct.ScreenCastThread):
+        config['rdp_thread'].set_guest_connected(True)
 
 
 @socketio.on('disconnect', namespace='/cast')
 def disconnect_cast():
     print('Client disconnected from /cast')
+    if isinstance(config.get('rdp_thread', None), Sct.ScreenCastThread):
+        config['rdp_thread'].set_guest_connected(False)
 
 
 @socketio.on('connect', namespace='/rdp')
 @guard
 def connect_rdp():
-    print('Client connected to /rdp')
+    print('Admin connected to /rdp')
+    if isinstance(config.get('rdp_thread', None), Sct.ScreenCastThread):
+        config['rdp_thread'].set_admin_connected(True)
 
 
 @socketio.on('disconnect', namespace='/rdp')
 def disconnect_rdp():
-    print('Client disconnected from /rdp')
+    print('Admin disconnected from /rdp')
+    if isinstance(config.get('rdp_thread', None), Sct.ScreenCastThread):
+        config['rdp_thread'].set_admin_connected(False)
 
 
 @socketio.on('mouse_event', namespace='/rdp')

@@ -21,9 +21,12 @@
                 {% for record in records %}
                     <tr>
                         {% for column in columns %}
-                            <td>{{ record[column] }}</td>
+							{% if column in primary %}
+                        <td><strong><a href="/db/edit/{{ table_name }}/{{ column }}/{{ record[column] }}"> {{ record[column] }} </a></strong></td>
+							{% else %}
+								<td>{{ record[column] }}</td>
+							{% endif %}
                         {% endfor %}
-                        <td><a href="{{ url_for('db.edit_record', table_name=table_name, id=record[columns[0]]) }}">Edytuj</a></td>
                     </tr>
                 {% endfor %}
             </tbody>

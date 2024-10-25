@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+/* Ustawienie tła strony na czarne */
+body {
+    background-color: black;
+    color: aquamarine;  /* Ustawienie domyślnych napisów na akwamarynowe */
+}
+
+/* Styl formularza */
+.form-label {
+    color: aquamarine;  /* Ustawienie koloru etykiet formularza */
+}
+
+/* Styl pola input */
+.form-control {
+    background-color: #1a1a1a;  /* Ciemnoszare tło pola input */
+    color: aquamarine;  /* Kolor tekstu na akwamarynowy */
+    border: 1px solid #444;  /* Ciemnoszary obrys */
+    padding: 10px;
+    border-radius: 4px;
+}
+
+/* Aktywny input - zielony obrys i jasnozielony tekst */
+.form-control:focus {
+    outline: none;
+    border-color: green;  /* Zielony obrys aktywnego inputu */
+    color: #32CD32;  /* Jasnozielony tekst w aktywnym input */
+    background-color: #0f0f0f;  /* Trochę ciemniejsze tło dla aktywnego pola */
+}
+
+/* Styl przycisku */
+.btn-primary {
+    background-color: #28a745;  /* Zielony przycisk */
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #218838;  /* Ciemniejszy zielony przycisk po najechaniu */
+}
+
+/* Dodatkowy styl dla wiadomości */
+#message {
+    color: aquamarine;  /* Tekst wiadomości też akwamarynowy */
+}
+
+/* Styl nagłówka */
+h1 {
+    color: aquamarine;
+}
+
+/* Styl placeholderów w inputach */
+.form-control::placeholder {
+    color: #555;  /* Ustawienie koloru placeholdera na ciemniejszy szary */
+}
+        
+    </style>
+
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Add record to <i>{{ table_name}}</i></h1>
+        <form id="dynamicForm" class="mt-3"></form>
+        <button id="submitBtn" class="btn btn-primary mt-3">Submit</button>
+        <div id="message" class="mt-3"></div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            const tableName = '{{ table_name }}'; 
+            const form = $('#dynamicForm');
+
+            // Pobierz strukturę tabeli z backendu
+            $.ajax({
+                url: '/db/info/structure/' + tableName,
+                type: 'GET',
+                success: function(columns) {
+                    // Dla każdej kolumny wygeneruj odpowiednie pole formularza
+                    columns.forEach(column => {
+                        const label = $('<label>').addClass('form-label').text(column.name);
+                        let input;
+
+                        // Generowanie pól input na podstawie typu danych
+                        switch (column.type) {
+                            case 'Integer':
+                            case 'BigInt':
+                            case 'Serial':
+                            case 'BigSerial':
+                                input = $('<input>').attr('type', 'number').addClass('form-control').attr('name', column.name);
+                                break;
+                            case 'Float':
+                            case 'Real':
+                            case 'Double Precision':
+                            case 'Numeric':
+                                input = $('<input>').attr('type', 'number').attr('step', 'any').addClass('form-control').attr('name', column.name);
+                                break;
+                            case 'String':
+                            case 'Text':
+                            case 'UUID':
+                            case 'JSON':
+                            case 'JSONB':
+                                input = $('<input>').attr('type', 'text').addClass('form-control').attr('name', column.name);
+                                break;
+                            case 'Boolean':
+                                input = $('<select>').addClass('form-control').attr('name', column.name)
+                                    .append($('<option>').attr('value', 'true').text('True'))
+                                    .append($('<option>').attr('value', 'false').text('False'));
+                                break;
+                            case 'Date':
+                            case 'DateTime':
+                                input = $('<input>').attr('type', 'datetime-local').addClass('form-control').attr('name', column.name);
+                                break;
+                            case 'Time':
+                                input = $('<input>').attr('type', 'time').addClass('form-control').attr('name', column.name);
+                                break;
+                            case 'Interval':
+                                input = $('<input>').attr('type', 'text').addClass('form-control').attr('name', column.name);
+                                break;
+                            case 'ForeignKey':
+                                input = $('<input>').attr('type', 'text').addClass('form-control').attr('name', column.name).attr('placeholder', 'Enter related record ID');
+                                break;
+                            case 'Array':
+                                input = $('<input>').attr('type', 'text').addClass('form-control').attr('name', column.name).attr('placeholder', 'Enter array values separated by commas');
+                                break;
+                            default:
+                                input = $('<input>').attr('type', 'text').addClass('form-control').attr('name', column.name);
+                        }
+
+                        const formGroup = $('<div>').addClass('mb-3').append(label, input);
+                        form.append(formGroup);
+                    });
+                },
+                error: function() {
+                    $('#message').html('<div class="alert alert-danger">Error loading table structure</div>');
+                }
+            });
+
+            // Obsługa przesyłania formularza
+            $('#submitBtn').on('click', function(event) {
+                event.preventDefault();
+                
+                // Zbierz dane dynamicznie z formularza
+                const formData = {};
+                form.find('input, select').each(function() {
+                    const name = $(this).attr('name');
+                    const value = $(this).val();
+                    formData[name] = value;
+                });
+
+                // Wyślij dane do backendu
+                $.ajax({
+                    url: `/db/add_record/${tableName}`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function(response) {
+                        $('#message').html('<div class="alert alert-success">' + response.message + '</div>');
+                    },
+                    error: function(response) {
+                        $('#message').html('<div class="alert alert-danger">' + response.responseJSON.error + '</div>');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Column Analysis</title>
+    <!-- Bootstrap 5.0.0 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: black;
+            color: aquamarine;
+        }
+        label {
+            color: aquamarine;
+        }
+        .form-control {
+            height: calc(1.2em + .75rem + 2px);
+            background-color: #111;
+            color: #39ff14;
+            border: 1px solid #555;
+        }
+        .form-control:focus {
+            color: yellow;
+            border-color: yellow;
+            box-shadow: 0 0 0.2rem yellow;
+        }
+        .table-primary-key {
+            background-color: #333300;
+            color: aquamarine;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+            <div class="mb-3">
+                <label for="tableName" class="form-label">New table Name</label>
+                <input type="text" class="form-control" tableName="inputTableName" id="inputTableName" placeholder="Enter the new table name" required value="{{ short_name }}">
+            </div>
+            <h5 class="mt-4">Columns in <span class="text-warning">{{ selected_file }}</span></h5>
+
+        <!-- Table for displaying columns and types -->
+        <table class="table table-dark table-hover mt-3">
+            <thead>
+                <tr>
+                    <th>Column Name</th>
+                    <th>Type</th>
+                    <th>Primary</th>
+                    <th>Autoincrement</th>
+                </tr>
+            </thead>
+            <tbody id="columnsTable">
+                {% if not file_info.autoincrement_column %}
+                <tr id="auto_primary_key">
+                    <td><input type="text" class="form-control" value="id" readonly></td>
+                    <td><input type="text" class="form-control" value="Integer" readonly></td>
+                    <td><input type="checkbox" class="primary-key" checked disabled></td>
+                    <td><input type="checkbox" class="autoincrement-key" checked disabled></td>
+                </tr>
+                {% endif %}
+
+                {% for column in file_info.columns %}
+                <tr class="{% if column.name == file_info.autoincrement_column %}table-primary-key{% endif %}">
+                    <td><input type="text" class="form-control" value="{{ column.name }}" readonly></td>
+                    <td><input type="text" class="form-control" value="{{ column.type }}" readonly></td>
+                    <td><input type="checkbox" class="primary-key" {% if column.name == file_info.primary_key %}checked disabled{% endif %}></td>
+                    <td><input type="checkbox" class="autoincrement-key" {% if column.name == file_info.autoincrement_column %}checked disabled{% endif %}></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <button id="submitBtn" class="btn btn-outline-success btn-info">Create table & fill content</button>
+    </div>
+
+
+
+    <!-- Modal Structure -->
+    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Modal title</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Modal Body will be loaded dynamically -->
+                </div>
+                <div class="modal-footer" id="modalFooter">
+                    <!-- Modal Footer will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var existing_tables = [{% for name in table_names %}"{{ name }}",{% endfor %}];
+            var nameOk = false;
+
+            $('input').each(function() { 
+                $(this).attr('style', 'background-color: black; color: #00ff00;');
+            });
+
+            $('input:focus').each(function(){
+                $(this).attr('style', 'background-color: black; color: yellow;');
+            });
+
+            $('#inputTableName').on('keyup', function() {
+                var $this = $(this);
+                var tableName = $this.val();
+                
+                if (jQuery.inArray(tableName, existing_tables) !== -1) {
+                    $this.css('background', 'red');
+                    nameOk = false;
+                } else {
+                    $this.css('background', 'black');
+                    nameOk = true;
+                }
+            });
+            $('#inputTableName').trigger('keyup');
+
+            $('#submitBtn').on('click', function () {
+                let primary_keys = [];
+                let autoincrement_keys = [];
+
+                $('#columnsTable tr').each(function () {
+                    const columnName = $(this).find('input[type="text"]').first().val();
+                    const isPrimaryKey = $(this).find('input[class="primary-key"]').prop('checked');
+                    const isAutoincrement = $(this).find('input[class="autoincrement-key"]').prop('checked');
+                    if (isPrimaryKey) {
+                        primary_keys.push(columnName);
+                    }
+                    if (isAutoincrement) {
+                        autoincrement_keys.push(columnName);
+                    }
+                });
+                
+                if (!nameOk) {
+                    alert('Busy table name!');
+                    return;
+                }
+                if (primary_keys.length === 0) {
+                    alert('js alert: No primary keys selected ');
+                }
+
+                $.ajax({
+                    url: '/db/uploaded?file={{ selected_file }}',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        'primary_keys': primary_keys,
+                        'autoincrement_keys': autoincrement_keys, 
+                        'new_table_name': $('#inputTableName').val(),
+                        'selected_file': '{{ selected_file }}',
+                    }),
+                    success: function (response) {
+                        showModalOk(JSON.stringify(response), function(){ window.location.href='/db/table/fk/' + $('#inputTableName').val(); });
+                    },
+                    error: function (xhr) {
+                        alert('Error saving configuration: ' + xhr.responseText);
+                    }
+                });
+            });
+
+
+            function showModalOk(message, cb=false) {
+                const modalTitle = document.getElementById('modalTitle');
+                const modalBody = document.getElementById('modalBody');
+                const modalFooter = document.getElementById('modalFooter');
+
+                modalTitle.innerHTML = 'Information';
+                modalBody.innerHTML = `<p>${message}</p>`;
+                modalFooter.innerHTML = `<button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="modalOk">OK</button>`;
+
+                if (cb) {
+                    $('#modalOk').on('click', function(){ cb(); });
+                }
+
+                let x = new bootstrap.Modal(document.getElementById('myModal'));
+                x.show();
+            }
+
+
+        });
+    </script>
+</body>
+</html>

@@ -37,7 +37,6 @@ def find_records(table_name, column_name, value):
 find_records('OrderDetails', 'OrderID', 10251)
 
 
-
 def find_records_return_dicts(table_name, column_name, value):
     if table_name not in tables_dict:
         raise AttributeError(f"Tabela o nazwie '{table_name}' nie istnieje.")
@@ -80,7 +79,6 @@ def find_records_return_dicts_expand_fk(table_name, column_name, value):
         if records:
             for i in range(len(records)):
                 records[i] = dict(zip(col_names, records[i]))
-
 
 
 print(find_records_return_dicts('OrderDetails', 'OrderID', 10251))
@@ -153,9 +151,6 @@ def get_record_dict2(table_name, column_name, value, name_only=False):
                 if col_name in fkrn:
                     ref_table_name, ref_col_name = fkrn.split('.')
                     find_records(ref_table_name, ref_col_name, record[i])
-
-
-
 
 
 get_record_dict2('OrderDetails', 'OrderID', 10251)

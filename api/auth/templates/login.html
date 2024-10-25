@@ -5,69 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <style>
-html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-}
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
 
-body {
-    background-color: black;
-    color: yellow;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+        body {
+            background-color: black;
+            color: yellow;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-div {
-    background-color: black;
-    padding: 20px;
-    width: 80%; /* Możesz dostosować szerokość diva do swoich potrzeb */
-    max-width: 400px; /* Ograniczenie maksymalnej szerokości dla lepszej czytelności na urządzeniach o dużej rozdzielczości */
-}
+        .login-panel {
+            background-color: black;
+            padding: 20px;
+            width: 60%; /* Szerokość panelu logowania */
+            height: 20%; /* Wysokość panelu logowania */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-sizing: border-box;
+        }
 
-label {
-    color: black;
-    background-color: yellow; /* Dodanie tła dla label */
-    padding: 5px; /* Dodanie wewnętrznego marginesu dla label */
-}
+        label {
+            color: yellow;
+            display: block;
+            margin-bottom: 10px;
+        }
 
-input[type="text"], input[type="password"] {
-    color: yellow;
-    background-color: black;
-    margin-bottom: 10px;
-    padding: 5px;
-    width: 100%; /* Rozciągnij elementy input na całą szerokość diva */
-    border: 1px solid white; /* Dodanie białej ramki do inputów */
-}
+        input[type="text"], input[type="password"] {
+            color: yellow;
+            background-color: black;
+            margin-bottom: 10px;
+            padding: 10px;
+            width: 100%;
+            border: 1px solid yellow;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
 
-input[type="submit"] {
-    background-color: yellow;
-    color: black;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
-    width: 100%;
-}
+        input[type="text"]:hover, input[type="password"]:hover {
+            border-color: orange;
+        }
 
-input[type="submit"]:hover {
-    background-color: green;
-    color: red;
-}
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-color: lightgreen;
+            color: lightgreen;
+            background-color: #333;
+            transform: scale(1.05);
+        }
 
-p {
-    margin: 0;
-}
+        input[type="submit"] {
+            background-color: yellow;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            width: 100%;
+            box-sizing: border-box;
+        }
 
-@media only screen and (min-width: 768px) {
-    body {
-        justify-content: flex-end;
-        align-items: flex-end;
-    }
-}
+        input[type="submit"]:hover {
+            background-color: green;
+            color: red;
+        }
 
+        p {
+            margin: 0;
+        }
     </style>
 </head>
 <body>

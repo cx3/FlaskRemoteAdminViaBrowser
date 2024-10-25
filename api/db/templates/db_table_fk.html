@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Table Viewer</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #343a40;
+            color: white;
+        }
+        th, td {
+            text-align: center;
+        }
+
+
+        .table-container {
+            margin: 3px;
+            background-color: #1f1a17;
+            padding: 5px;
+            border-radius: 8px;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #05deed;
+        }
+        .col-highlight {
+            background-color: #09dbd6; 
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+        .col-highlight:hover {
+            background-color: #10e0d8; 
+        }
+        .table-dark .highlight-color-1 {
+            background-color: #011a03;
+        }
+        .table-dark .highlight-color-2 {
+            background-color: #023614; 
+        }
+        .table-dark .highlight-color-3 {
+            background-color: #24605e;
+        }
+        .table-dark .highlight-color-4 {
+            background-color: #5e3a2e;
+        }
+        .table-dark .highlight-color-5 {
+            background-color: #324b49;
+        }
+        .table-dark .highlight-color-6 {
+            background-color: #d9534f;
+        }
+        .table-dark .highlight-color-7 {
+            background-color: #f0ad4e;
+        }
+        .table-dark .highlight-color-8 {
+            background-color: #5bc0de;
+        }
+        .table-dark .highlight-color-9 {
+            background-color: #5cb85c;
+        }
+
+        .form-control {
+            background-color: #021707;
+            color: #05f73f;
+        }
+        [type="button"], select, .modal-content, #inputFilter {
+            background-color: #021707;
+            color: lightgreen;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="col" class="form-control" style="display: flex; justify-content: flex-start; gap: 20px;">
+        <h3 id="h3title">Database Table:</h3>
+        <button type="button" class="btn btn-primary" name="valueExpander" id="valueExpander" role="checkbox" aria-checked="true">Fold</button>
+        <select id="changeTable"></select>
+        <button class="btn btn-outline-success" id="goChangeTableBtn">go</button>
+        <button class="btn-success btn-outline-warning" id="addNewRecordBtn">New record</button>
+        <input type="text" id="inputFilter" placeholder="filter...">
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="table-container">
+                    <table class="table table-dark table-hover table-sm">
+                        <thead>
+                            <tr id="table-header">
+                                <!-- jQuery dynamic content -->
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- jQuery dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Edit Modal structure -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Edit Record</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="editModalBody">
+        <!-- jQuery dynamic content-->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-warning" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success" id="confirmChangesBtn">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Add record modal -->
+<div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Add new record</h5>
+                <button type="button" class="btn btn-warning btn-outline-info" data-bs-dismiss="modal" aria-label="Close">X</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic jQuery content -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success btn-outline-info" id="addRecordBtn">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const parts = window.location.href.split('/');
+    var tableName = parts[parts.length - 1];
+    var foreignMap = {};
+    var visibleRecords = [];
+    var primaryKeys = [];
+
+    $(document).ready(function () {
+        $('body').css('font-size', '75%');
+
+        let fullTableData = [];
+        
+        function renderSelectTables() {
+            $.getJSON('/db/info/table_names', function (data) {
+                for (let name of data.result) {
+                    if (name !== tableName) {
+                        $('#changeTable').append(`<option name="${name}">${name}</option>`)
+                    }
+                }
+            });
+            $('#goChangeTableBtn').on('click', () => { 
+                parts[parts.length - 1] = $('#changeTable').val();
+                window.open(parts.join('/'), '_blank'); 
+            });
+        }
+
+        $('#valueExpander').on('click', function() {
+            if ($(this).attr('aria-checked') === 'true') {
+                $('.foreign-value').attr('style', 'display: block');
+                $(this).attr('aria-checked', 'false').text("Fold").removeClass("btn-primary").addClass("btn-info");
+            } else {
+                $('.foreign-value').attr('style', 'display: none');
+                $(this).attr('aria-checked', 'true').text("Expand").removeClass("btn-info").addClass("btn-primary");
+            }
+        });
+
+
+        $('#inputFilter').on('keyup', function() {
+            visibleRecords = [];
+            let filterValue = $(this).val().toLowerCase();
+            let index = 0;
+            
+            $('#table-body tr').each(function() {
+                index++;
+                let rowText = $(this).find('td').map(function() {
+                    return $(this).text().toLowerCase();
+                }).get().join(' ');
+
+                if (rowText.includes(filterValue)) {
+                    $(this).show();
+                    visibleRecords.push(fullTableData.records[index]);
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+
+
+        $('#addNewRecordBtn').on('click', function() {
+            openAddNewRecordModal(tableName, fullTableData.columns, foreignMap);
+        });
+
+
+        function loadFullTable(tableName) {
+            $.getJSON(`/db/info/content/${tableName}`, function (data) {
+                fullTableData = data;
+                visibleRecords = data.records;
+                foreignMap = data.foreign;
+                primaryKeys = data.primary;
+                
+                $('#h3title').html('Database Table <i>' + tableName + '</i>');
+                renderTable(fullTableData);
+                if (data.records.length === 0) {
+                    openAddNewRecordModal(tableName, fullTableData.columns, foreignMap);
+                }
+                if (Object.keys(foreignMap).length === 0) {
+                    $('#valueExpander').attr('style', 'display: none');
+                } else {
+                    $('#valueExpander').attr('style', 'display: block');
+                }
+            });
+        }
+
+        function renderTable(data) {
+            renderTableHeaders(data.columns, data.foreign);
+            renderTableRows(data.records, data.columns, data.foreign);
+        }
+
+
+let sortOrder = 'asc';  
+
+
+function sortTableByColumn(columnIndex, columns, records) {
+    const columnName = columns[columnIndex].name;
+    if (sortOrder === 'asc') {
+        visibleRecords.sort((a, b) => (a[columnName] > b[columnName]) ? 1 : -1);
+        sortOrder = 'desc';  // Następne kliknięcie posortuje malejąco
+    } else {
+        visibleRecords.sort((a, b) => (a[columnName] < b[columnName]) ? 1 : -1);
+        sortOrder = 'asc';  // Następne kliknięcie posortuje rosnąco
+    }
+    renderTableRows(visibleRecords, columns, foreignMap);  // Aktualizuj tabelę na podstawie posortowanych widocznych rekordów
+}
+        
+
+        function renderTableHeaders(columns, foreigns) {
+            var headerRow = $('#table-header');
+            headerRow.empty();
+
+            columns.forEach((col, index) => {  // Firstly columns without foreign keys
+                if (!('foreign_keys' in col)) {
+                    var th = $('<th>')
+                        .text(col.name)
+                        .attr('data-json', JSON.stringify(col))
+                        .addClass('highlight-color-1')
+                        .css('cursor', 'pointer')
+                        .click(function () {
+                            sortTableByColumn(index, columns, visibleRecords);
+                        });
+                    headerRow.append(th);
+                }
+            });
+
+            let fkStyleIndex = 2;
+            columns.forEach((col, index) => {
+                if ('foreign_keys' in col) {
+                    var th = $('<th>')
+                        .attr('data-json', JSON.stringify(col))
+                        .addClass('highlight-color-' + fkStyleIndex)
+                        .html(`${col.name}<a href="/db/table/fk/${foreigns[col.name].split('.')[0]}">=></a>` + '<p class="foreign-value">' + foreigns[col.name] + '</p>')
+                        .click(function () {
+                            sortTableByColumn(index, columns, fullTableData.records);
+                        });
+                    headerRow.append(th);
+                    fkStyleIndex++;
+                    if (fkStyleIndex > 9) fkStyleIndex = 2;
+                }
+            });
+        }
+
+    
+        function renderTableRows(records, columns, foreigns) {  // render table rows (content)
+            var tableBody = $('#table-body');
+            tableBody.empty();
+
+            records.forEach(record => {
+                const tr = $('<tr>');
+
+                columns.forEach((col, index) => {  // firstly columns without foreign keys
+                    if (!('foreign_keys' in col)) {
+                        const fieldName = col.name;
+                        const value = record[fieldName];
+
+                        const td = $('<td>')
+                            .text(value)
+                            .addClass('highlight-color-1')
+                            .dblclick(function () {
+                                openEditModal($(this), fieldName, value, record);
+                            });
+                        tr.append(td);
+                    }
+                });
+
+                let fkStyleIndex = 2;
+                columns.forEach((col, index) => { // now coumns foreign keys
+                    if ('foreign_keys' in col) {
+                        const fieldName = col.name;
+                        const value = record[fieldName];
+
+                        const td = $('<td>')
+                            .addClass('highlight-color-' + fkStyleIndex)
+                            .dblclick(function () {
+                                openEditModalForeign($(this), fieldName, value, record, foreigns[col.name]);
+                            });
+
+                        let table = foreigns[col.name].split('.')[0];
+                        let field = foreigns[col.name].split('.')[1];
+
+                        $.getJSON(`/db/get_record/${table}/${field}/${value}`, function (foreignData) {  // get info foreign key
+                            let tdText = "";
+                            Object.values(foreignData).forEach(v => {
+                                tdText += v + " ";
+                            });
+                            td.html(value + '<p class="foreign-value"> => ' + tdText + '</p>');
+                        });
+                        tr.append(td);
+                        fkStyleIndex++;
+                        if (fkStyleIndex > 9) fkStyleIndex = 2;
+                    }
+                });
+                tableBody.append(tr);
+            });
+        }
+
+
+        function openEditModalForeign(td, fieldName, value, record, referenceTable) {
+            referenceTable = referenceTable.replaceAll("['", "").replaceAll("']", "");
+            referenceField = referenceTable.split('.')[1];
+
+            $.getJSON(`/db/info/content/${referenceTable.split('.')[0]}`, function (data) {
+                $('#editModalBody').empty();
+                
+                var selectHtml = '<label for="edit-' + fieldName + '" id="foreignSelector">Select ' + fieldName + '</label>';
+                selectHtml += '<select class="form-control" id="edit-' + fieldName + '">';
+                data.records.forEach(fkRecord => {
+                    selectHtml += '<option value="' + fkRecord[referenceField] + '"' + (fkRecord[referenceField] == value ? ' selected' : '') + '>' + fkRecord[referenceField] + '</option>';
+                });
+                selectHtml += '</select>';
+
+                var checkboxHtml = '<div class="form-check">';
+                checkboxHtml += '<input class="form-check-input" type="checkbox" id="fk-edit-checkbox">';
+                checkboxHtml += '<label class="form-check-label" for="fk-edit-checkbox">Edit foreign key data</label>';
+                checkboxHtml += '</div>';
+
+                var foreignKeyDataHtml = '<div id="foreign-key-data">';
+                foreignKeyDataHtml += '<h5>Foreign Key Data</h5>';
+                foreignKeyDataHtml += '<div id="foreign-key-fields"></div>';  // will be filled dynamicaly
+                foreignKeyDataHtml += '</div>';
+
+                $('#editModalBody').append(selectHtml);
+                $('#editModalBody').append(checkboxHtml);
+                $('#editModalBody').append(foreignKeyDataHtml);
+
+                loadForeignKeyData(value, referenceTable);
+                $('#editModal').modal('show');
+                $('#edit-' + fieldName).change(function () {
+                    let newValue = $(this).val();
+                    loadForeignKeyData(newValue, referenceTable);
+                });
+
+                $('#fk-edit-checkbox').change(function () {
+                    if ($(this).is(':checked')) {
+                        $('#foreign-key-fields').find('input').prop('disabled', false);  // edit possible
+                    } else {
+                        $('#foreign-key-fields').find('input').prop('disabled', true);  // edit disabled
+                    }
+                });
+
+                $('#confirmChangesBtn').off('click').on('click', function () {
+                    var updatedValue = $('#edit-' + fieldName).val();  // new value for select
+
+                    if ($('#fk-edit-checkbox').is(':checked')) {
+                        var updatedForeignData = {};
+                        $('#foreign-key-fields').find('input').each(function () {
+                            let foreignField = $(this).attr('id').replace('fk-edit-', '');
+                            updatedForeignData[foreignField] = $(this).val();
+                        });
+
+                        $.ajax({
+                            url: `/db/edit/${referenceTable.split('.')[0]}/${referenceTable.split('.')[1]}/${value}`,
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(updatedForeignData),
+                            success: function () {
+                                alert('Foreign key record updated successfully!');
+                            },
+                            error: function (error) {
+                                alert('Error updating foreign key record: ' + error.responseText);
+                            }
+                        });
+                    }
+
+                    $.ajax({
+                        url: `/db/edit/${tableName}/${fieldName}/${record.id}`,
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ [fieldName]: updatedValue }),
+                        success: function () {
+                            alert('Record updated successfully!');
+                            $('#editModal').modal('hide');
+                            loadFullTable(tableName);
+                        },
+                        error: function (error) {
+                            alert('Error updating record: ' + error.responseText);
+                        }
+                    });
+                });
+            });
+        }
+
+        function loadForeignKeyData(value, referenceTable) {
+            $.getJSON(`/db/get_record/${referenceTable.split('.')[0]}/${referenceTable.split('.')[1]}/${value}`, function (foreignData) {
+                var fieldsHtml = '';
+                Object.keys(foreignData).forEach(key => {
+                    fieldsHtml += '<div class="form-group">';
+                    fieldsHtml += '<label for="fk-edit-' + key + '">' + key + '</label>';
+                    fieldsHtml += '<input type="text" class="form-control disabled" id="fk-edit-' + key + '" value="' + foreignData[key] + '" disabled>';
+                    fieldsHtml += '</div>';
+                });
+                $('#foreign-key-fields').html(fieldsHtml);
+            });
+        }
+
+
+function openEditModal(td, fieldName, value, record) {
+    $('#editModal').modal('show');
+
+    let modalBody = $('#editModalBody');
+    modalBody.empty();
+
+    Object.keys(record).forEach(key => {
+        let fieldValue = record[key];
+
+        if (key in foreignMap) {
+            $.getJSON(`/db/info/content/${foreignMap[key].split('.')[0]}`, function (data) {
+                let select = $('<select>')
+                    .attr('id', `edit-${key}`)
+                    .addClass('form-control');
+
+                data.records.forEach(fkRecord => {
+                    let fkValue = fkRecord[foreignMap[key].split('.')[1]];
+                    let option = $('<option>')
+                        .attr('value', fkValue)
+                        .text(fkValue)
+                        .prop('selected', fkValue == fieldValue);
+                    select.append(option);
+                });
+                modalBody.append($('<label>').text(key));
+                modalBody.append(select);
+            });
+        } else {
+            const input = $('<input>')
+                .attr('type', 'text')
+                .attr('id', `edit-${key}`)
+                .addClass('form-control')
+                .val(fieldValue);
+
+            modalBody.append($('<label>').text(key));
+            modalBody.append(input);
+        }
+    });
+
+    $('#confirmChangesBtn').off('click').on('click', function () {
+        let updatedData = {};
+
+        Object.keys(record).forEach(key => {
+            if (key in foreignMap) {
+                updatedData[key] = $(`#edit-${key}`).val();
+            } else {
+                updatedData[key] = $(`#edit-${key}`).val();
+            }
+        });
+        $.ajax({
+            url: `/db/edit/${tableName}/${primaryKeys[0]}/${record[primaryKeys[0]]}`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(updatedData),
+            success: function () {
+                alert('Record updated successfully!');
+                $('#editModal').modal('hide');
+                loadFullTable(tableName);
+            },
+            error: function (error) {
+                alert('Error updating record: ' + JSON.stringify(error.responseJSON));
+            }
+        });
+    });
+}
+
+
+        function openAddNewRecordModal(tableName, columns, foreigns) {
+            let myModal = new bootstrap.Modal(document.getElementById('myModal'));
+            $('#modalTitle').text(`Add new record to ${tableName}`);
+            $('#modalBody').empty();
+
+            let formHtml = '<form id="newRecordForm">';
+
+            columns.forEach((col) => {
+                const fieldName = col.name;
+
+                if (foreigns[fieldName]) {
+                    let foreignTable = foreigns[fieldName].split('.')[0];  // foreign table name
+                    let foreignField = foreigns[fieldName].split('.')[1];  // foreign table column
+                    
+                    formHtml += `<div class="form-group">
+                        <label for="new-${fieldName}">${fieldName}</label>
+                        <select class="form-control" id="new-${fieldName}">
+                            <option value="" disabled selected>Select ${fieldName}</option>
+                        </select>
+                    </div>`;
+
+                    $.getJSON(`/db/info/content/${foreignTable}`, function (data) {
+                        data.records.forEach(fkRecord => {
+                            $(`#new-${fieldName}`).append(
+                                `<option value="${fkRecord[foreignField]}">${fkRecord[foreignField]}</option>`
+                            );
+                        });
+                    });
+
+                } else {  
+                    formHtml += `<div class="form-group">
+                        <label for="new-${fieldName}">${fieldName}</label>
+                        <input type="text" class="form-control" id="new-${fieldName}" name="${fieldName}" placeholder="Enter ${fieldName}">
+                    </div>`;
+                }
+            });
+            $('#modalBody').html(formHtml + '</form>');
+
+            $('#addRecordBtn').off('click').on('click', function () {
+                let newRecordData = {};
+                columns.forEach((col) => {
+                    const fieldName = col.name;
+                    newRecordData[fieldName] = $(`#new-${fieldName}`).val();
+                });
+                $.ajax({
+                    url: `/db/add_record/${tableName}`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(newRecordData),
+                    success: function () {
+                        alert('New record added successfully!');
+                        $('#myModal').modal('hide');
+                        loadFullTable(tableName);
+                    },
+                    error: function (error) {
+                        alert('Error adding new record: ' + error.responseText);
+                    }
+                });
+            });
+            myModal.show();
+        }
+
+
+
+        $('#saveRecordBtn').click(function () {
+            var formData = $('#recordForm').serializeArray();
+            var data = {};
+
+            formData.forEach(item => {
+                data[item.name] = item.value;
+            });
+            var pk = data[fullTableData.primary_key];
+
+            $.ajax({
+                url: `/db/edit/${tableName}/${pk}/${data[pk]}`,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (response) {
+                    alert('Zapisano zmiany');
+                    $('#recordModal').modal('hide');
+                    loadFullTable(tableName);  // Odśwież tabelę
+                }
+            });
+        });
+
+        renderSelectTables();
+        loadFullTable(tableName);
+        $('#valueExpander').click();
+    });
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bootstrap Modals</title>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Dark mode custom CSS -->
+    <style>
+		body {
+			background-color: #121212;
+			color: #ffffff;
+		}
+		.modal-content {
+			background-color: #1e1e1e;
+			color: white;
+		}
+		.btn-close {
+			filter: invert(1);
+		}
+		/* Ustawienia dla większych ekranów */
+		@media (min-width: 1200px) {
+			.modal-xl {
+				max-width: 80%; /* Zwiększa rozmiar modala na dużych ekranach */
+			}
+		}
+		.modal-body {
+			max-height: 75vh; /* Dostosowanie maksymalnej wysokości zawartości modala */
+			overflow-y: auto;
+		}
+		
+		.breadcrumb {
+			background-color: #041426;
+		}
+
+		.breadlink {
+			color: #ff7b00;
+		}
+
+		.breadlink:hover {
+		  background-color: #e63115;
+		  color: #c4bf04;
+		  font-weight: bold;
+		}
+
+	</style>
+</head>
+<body>
+
+
+
+<!-- Modal Structure -->
+<div class="modal fade" id="myModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl"> <!-- Dodano modal-xl -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer" id="modalFooter"></div>
+        </div>
+    </div>
+</div>
+
+    <script>
+    // Show OK Modal
+    function showModalOk(message) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const modalFooter = document.getElementById('modalFooter');
+
+            modalTitle.innerHTML = 'Information';
+            modalBody.innerHTML = `<p>${message}</p>`;
+            modalFooter.innerHTML = `<button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>`;
+
+            var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+            myModal.show();
+        }
+
+    // Show Yes/No Modal
+    function showModalAskYesNo(message, yesCallback, noCallback) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const modalFooter = document.getElementById('modalFooter');
+
+            modalTitle.innerHTML = 'Confirm';
+            modalBody.innerHTML = `<p>${message}</p>`;
+            modalFooter.innerHTML = `
+                <button type="button" class="btn btn-success" id="yesBtn">Yes</button>
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">No</button>
+            `;
+
+            var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+            myModal.show();
+
+            document.getElementById('yesBtn').onclick = function() {
+                if (yesCallback) yesCallback();
+                myModal.hide();
+            };
+        }
+
+    // Show Select One Of Modal   callback is a function that takes one argument
+    function showModalSelectOneOf(message, opts, callback) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const modalFooter = document.getElementById('modalFooter');
+
+            modalTitle.innerHTML = 'Select One';
+            modalBody.innerHTML = `<p>${message}</p>`;
+
+            let optionsHTML = '';
+            opts.forEach((opt, index) => {
+                optionsHTML += `
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="options" id="option${index}" value="${opt}">
+                        <label class="form-check-label" for="option${index}">
+                            ${opt}
+                        </label>
+                    </div>
+                `;
+            });
+            modalBody.innerHTML += optionsHTML;
+            modalFooter.innerHTML = `<button type="button" class="btn btn-primary" id="selectBtn">Select</button>`;
+
+            var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+            myModal.show();
+
+            document.getElementById('selectBtn').onclick = function() {
+                const selectedOption = document.querySelector('input[name="options"]:checked');
+                if (selectedOption && callback) callback(selectedOption.value);
+                myModal.hide();
+            };
+        }
+
+    
+	
+	// callback is a function that takes one argument that is array of string
+    function showModalSelectMulti(message, opts, callback) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const modalFooter = document.getElementById('modalFooter');
+
+            modalTitle.innerHTML = 'Select Multiple';
+            modalBody.innerHTML = `<p>${message}</p>`;
+
+            let optionsHTML = '';
+            opts.forEach((opt, index) => {
+                optionsHTML += `
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="options" id="option${index}" value="${opt}">
+                        <label class="form-check-label" for="option${index}">
+                            ${opt}
+                        </label>
+                    </div>
+                `;
+            });
+            modalBody.innerHTML += optionsHTML;
+            modalFooter.innerHTML = `<button type="button" class="btn btn-primary" id="selectMultiBtn">Select</button>`;
+
+            var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+            myModal.show();
+
+            document.getElementById('selectMultiBtn').onclick = function() {
+                const selectedOptions = Array.from(document.querySelectorAll('input[name="options"]:checked')).map(el => el.value);
+                if (callback) callback(selectedOptions);
+                myModal.hide();
+            };
+        }
+
+
+
+
+// Show File Selection Modal.  callback if function with one arg
+function showModalSelectFile(startDir, callback) {
+
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    const modalFooter = document.getElementById('modalFooter');
+
+    modalTitle.innerHTML = `
+	<div class="row">
+        <div class="col">
+            <nav aria-label="breadcrumb" id="breadcrumbNav">
+                <ol class="breadcrumb"></ol>
+            </nav>
+        </div>
+    </div>`;
+	
+	
+    modalBody.innerHTML = `
+        <div class="row">
+            <div class="col-3" style="border-right: 1px solid #444; max-height: 300px; overflow-y: auto;">
+                <ul class="list-group" id="folderList"></ul>
+            </div>
+            <div class="col-9" style="max-height: 300px; overflow-y: auto;">
+                <table class="table table-dark table-striped">
+                    <thead>
+                        <tr>
+							<th></th>
+                            <th>Icon</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Created At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fileList"></tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    if (startDir === undefined) {
+        startDir = "{{ cwd }}";
+    }
+	
+	
+    function renderBreadcrumb(currentPath) {
+        const breadcrumbNav = document.getElementById('breadcrumbNav').querySelector('ol');
+        breadcrumbNav.innerHTML = '';  // Clear previous breadcrumb
+
+		const dirs = currentPath.split('/');
+        const pathParts = currentPath.split('/').filter(part => part);  // Split and remove empty parts
+        let cumulativePath = '';
+		
+		var choosenFile = '';
+		
+		function buildPath(stop) {
+			let result = "";
+			for (let x=0;  x < stop + 1;  ++x) {
+				result += dirs[x] + '/';
+			}
+			return result;
+		}
+
+        pathParts.forEach((folder, index) => {
+            cumulativePath += `${folder}/`;
+            let li = document.createElement('li');
+            li.classList.add('breadcrumb-item');
+            
+            if (index === pathParts.length - 1) {
+                li.classList.add('active');  // Last part should be active
+                li.textContent = folder;
+            } else {
+                let a = document.createElement('a');
+                a.href = '#';  // Avoid full page reload
+                a.textContent = folder;
+				a.setAttribute("style", "color: orange;");
+				a.setAttribute("data-folder", buildPath(index));
+                a.onclick = function(e) {
+                    e.preventDefault();
+                    renderView(a.getAttribute("data-folder"));  // Navigate to this part of the path
+                };
+                li.appendChild(a);
+            }
+            breadcrumbNav.appendChild(li);
+        });
+    }	
+	
+	
+	
+    
+		function renderView(browseDir) {
+			$.ajax({
+				type: 'GET',
+				url: '/get_dir_content?server_dir=' + browseDir,
+				contentType: 'application/json',
+			})
+			.done((data) => {
+				let content = data["content"];
+				let dirs = content["dirs"];
+				let files = content["files"];
+	
+				renderBreadcrumb(browseDir);
+	
+				// Render folder list
+				let folderList = document.getElementById('folderList');
+				folderList.innerHTML = '';  // Clear previous folder list
+				dirs.forEach((dir) => {
+					let li = document.createElement('li');
+					li.classList.add('list-group-item');
+					li.textContent = dir.name;
+					li.setAttribute("data-full-path", dir.full_path);
+					li.ondblclick = function() {
+						renderView(dir.full_path);  // Reload view for selected folder
+					};
+					folderList.appendChild(li);
+				});
+				
+				// Render file table
+				let fileList = document.getElementById('fileList');
+				fileList.innerHTML = '';  // Clear previous file list
+				files.forEach((file, index) => {
+					let tr = document.createElement('tr');
+					tr.innerHTML = `
+						<td><input type="radio" name="fileSelect" id="fileRadio${index}" data-full-path="${file.full_path}"></td>
+						<td><img src="${file.icon}" alt="icon" style="width: 20px;"></td>
+						<td>${file.name}</td>
+						<td>${file.type}</td>
+						<td>${(file.size / 1024).toFixed(2)} KB</td>
+						<td>${new Date(file.created_at).toLocaleDateString()}</td>
+					`;
+
+					// On click of the row, select the corresponding radio button
+					tr.onclick = function() {
+						// Remove active class from all rows
+						document.querySelectorAll('#fileList tr').forEach(el => el.classList.remove('table-active'));
+
+						// Add active class to the clicked row
+						tr.classList.add('table-active');
+
+						// Select the corresponding radio button
+						document.getElementById(`fileRadio${index}`).checked = true;
+						
+						choosenFile = document.getElementById(`fileRadio${index}`).getAttribute('data-full-path');
+					};
+
+					// Append the row to the file list
+					fileList.appendChild(tr);
+				});
+			})
+			.fail((err) => {
+				console.error(err);
+			})
+			.always(() => {
+				console.log('Request completed');
+			});
+		}
+
+    // Initial load
+    renderView(startDir);
+    modalFooter.innerHTML = `<button type="button" class="btn btn-primary" id="selectFileBtn">Select File</button>`;
+    
+    var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+    myModal.show();
+    
+    document.getElementById('selectFileBtn').onclick = function() {
+        const selectedFile = document.querySelector('#fileList .table-active');
+        if (selectedFile) {
+            const filePath = choosenFile;
+            if (callback) callback(filePath);
+        }
+        myModal.hide();
+    };
+}
+
+    </script>
+
+    <!-- Add buttons to trigger modals for testing -->
+    <div class="container mt-5">
+        <button class="btn btn-primary" onclick="showModalOk('This is an OK message!')">Show OK Modal</button>
+        <button class="btn btn-warning" onclick="showModalAskYesNo('Do you agree?', () => alert('Yes!'), () => alert('No!'))">Show Yes/No Modal</button>
+        <button class="btn btn-info" onclick="showModalSelectOneOf('Pick one:', ['Option 1', 'Option 2', 'Option 3'], (val) => alert(val))">Show Select One Modal</button>
+        <button class="btn btn-secondary" onclick="showModalSelectMulti('Pick multiple:', ['Option A', 'Option B', 'Option C'], (vals) => alert(vals.join(', ')))">Show Select Multi Modal</button>
+        <button class="btn btn-success" id="filePicker" onclick="showModalSelectFile('{{ cwd }}', (file) => alert('Selected kurwa file: ' + file))">Show Select File Modal</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+
+<!-- 
+ChatGPT 4o
+plik z modalami, bootstrap 5 i javascripty. Wszystko w jednym pliku, ciemny motyw.
+funkcje: showModalAskYesNo,  showModalSelectOneOf, showModalSelectMulti,  showModalSelectFile,  
+
+- showModalOk(message) - pokazuje modal z komunikatem i przyciskiem OK
+- showModalAskYesNo(message)  pokazuje modal z komunikatem i dwoma przyciskami zielony Yes, czerwony No
+- showModalSelectOneOf(message: str, opts: array[str])  pokazuje modal z komunikatem message oraz
+grupę radiobutton tak by wyświetlić wszystkie opts ale móć wybrać tylko jedną opcję.
+- showModalSelectMulti(message: str, opts: array[str])  pokazuje modal z komunikatem message oraz 
+grupę checkbox tak by wyświetlić wszystie opts i móć wybrać wiele
+- showModalSelectFile(startDir: string)  -  modal na wybór pliku. Po lewej panel 25% szerokości okna do wyboru 
+innego folderu w aktualnym folderze, po prawej 75% szerokości okna wybór pliku. Jeśli to konieczne lista folderów 
+czy plików powinna być scrollowalna by modal mieścił się w oknie -->

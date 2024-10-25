@@ -14,17 +14,15 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from PIL import Image
 
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(64)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:/proj/some_sqlite.db'
-app.config['LOGIN_REQUIRED_SECURE_DECORATOR'] = True  # setting to False - no authentication needed
+app.config['LOGIN_REQUIRED_SECURE_DECORATOR'] = False  # setting to False - no authentication needed
 
 app.config['default_folder_viewer'] = 'list_dir4.html'  # 'list_dir4_icons.html'
 db = SQLAlchemy(app)
 app.config['db_instance'] = db
 socketio = SocketIO(app)
-
 
 download_status = {}
 
@@ -35,7 +33,6 @@ def main_route():
     info = system_info()
     info_text = f"System: {info['System']} {info['Version']}"
     node_name = f"{info['Node Name']}"
-    processor = f"{info['Processor']}"
     processor = f"{info['Processor']}"
 
     return render_template(
@@ -217,7 +214,6 @@ def upload_route():
             upload_dir = os.getcwd()
 
         file = request.files['file']
-        # Jeśli użytkownik nie wybrał pliku, przeglądarka może przesłać pusty plik bez nazwy
         if file.filename == '':
             return jsonify(response={'msg': 'No selected file'}), 400
         if file:  # (fileand allowed_file(file.filename)):
@@ -240,7 +236,8 @@ def ace_editor_route():
             return jsonify({'msg': 'param file is empty'}), 400
         if not os.path.isfile(file):
             return jsonify({'msg': 'cannot read passed file, it does not exist'}), 400
-        return render_template('ace.html', file=file)
+        return render_template('ace2.html', file=file)
+
     if request.method == 'POST':
         pack = request.get_json()
         file = pack.get('filename', False)
@@ -249,7 +246,7 @@ def ace_editor_route():
             file = make_secured_path(file)
             open(file, 'wb').write(data)
             return {"response": "file saved"}
-        return render_template('ace.html', file=file)
+        return render_template('ace2.html', file=file)
 
 
 @app.route('/zip_selected', methods=['POST', 'GET'])
@@ -401,7 +398,8 @@ def get_media_files_route(*args):
 
 
 @app.route('/mediaplayer', methods=['POST', 'GET'])
-def media_route(*args):  # https://developer.mozilla.org/en-US/docs/Web/Media/Audio_and_video_delivery/buffering_seeking_time_ranges
+def media_route(*args):
+    # https://developer.mozilla.org/en-US/docs/Web/Media/Audio_and_video_delivery/buffering_seeking_time_ranges
     files_or_dirs = []
     for next_item in [*request.args.values(), *args]:
         if isinstance(next_item, (tuple, list)):
@@ -411,14 +409,6 @@ def media_route(*args):  # https://developer.mozilla.org/en-US/docs/Web/Media/Au
 
     audio_ext = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma', 'm4a', 'aiff', 'alac', 'pcm']
     video_ext = ['mp4', 'mkv', 'avi', 'mov', 'wmv', 'flv', 'webm', 'vob', 'ogv', 'm4v']
-
-    def filter_media_files(files):
-        media_files = []
-        for file in files:
-            ext = os.path.splitext(file)[1][1:].lower()
-            if ext in audio_ext or ext in video_ext:
-                media_files.append(file)
-        return media_files
 
     playlist = []
     for next_entry in files_or_dirs:
@@ -462,6 +452,18 @@ def paint_edit_route():
     if media_dir:
         return render_template('paint_editor2.html', mode="new", **request.args)
     return render_template('paint_editor1.html', **request.args)
+
+
+@app.route('/modalWindows', methods=['GET'])
+@app.route('/modalWindows.html', methods=['GET'])
+def modal_windows_route():
+    cwd = request.args.get('server_dir', os.getcwd())
+    return render_template('modalWindows.html', cwd=slash(cwd))
+
+
+@app.route('/nested_dict.html')
+def nested_dict_route():
+    return render_template('nested_dict7.html')
 
 
 @app.route('/advanced_search')
@@ -517,13 +519,11 @@ def handle_search_files(data):
         end_index = len(file_searcher)
     paginated_results = file_searcher[start_index:end_index]
 
-    emit(
-    'search_results',
-    {
-                'results': paginated_results,
-                'id': id(file_searcher),
-                'totalLen': len(file_searcher),
-                'is_finished': file_searcher.is_finished()
+    emit('search_results', {
+            'results': paginated_results,
+            'id': id(file_searcher),
+            'totalLen': len(file_searcher),
+            'is_finished': file_searcher.is_finished()
         },
         namespace='/custom_search'
     )
@@ -556,19 +556,19 @@ def handle_get_page(data):
 
         emit('render_new_page',
              {
-                'results': paginated_results,
-                'size': len(paginated_results),
-                'page': page,
-                'id': id(x)
-            },
-            namespace='/custom_search'
-        )
+                 'results': paginated_results,
+                 'size': len(paginated_results),
+                 'page': page,
+                 'id': id(x)
+             },
+             namespace='/custom_search'
+             )
 
 
 @socketio.on('stop_thread', namespace='/custom_search')
 def handle_stop_thread(data):
     """
-    When heavy file search task gives us too much results / works too long etc - we kill the thread.
+    When heavy file search task gives us too much results / works too long etc... - we kill the thread.
     :param data:
     :return:
     """

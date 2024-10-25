@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Table</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+
+body[data-bs-theme="dark"] {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+.form-control-dark {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #444;
+}
+
+.form-error {
+    background: red;
+}
+
+.form-control-dark::placeholder {
+    color: #bbb;
+}
+
+.form-control-dark:hover {
+    border-color: #00FF00;
+}
+
+.form-control-dark:focus {
+    border-color: #FFA500;
+    box-shadow: 0 0 0 0.2rem rgba(255, 165, 0, 0.25);
+}
+
+
+.idcolumn {
+    border: 1px solid #444;
+    padding: 5px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+	background-color: gray;
+}
+
+.column {
+    border: 1px solid #444;
+    padding: 5px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: row; /* Ustawia kierunek flexboxa w rzędzie (poziomo) */
+    gap: 10px; /* Dodaje odstęp między elementami w kolumnie */
+}
+
+.column .details {
+    //width: auto; /* Ustawia szerokość na automatyczną, aby elementy nie zajmowały całej szerokości */
+    display: flex;
+    //flex-wrap: wrap;
+    gap: 10px; /* Dodaje odstęp między elementami w panelu */
+    //align-items: center; /* Wyrównuje elementy w pionie */
+}
+
+.column .actions {
+    //width: auto; /* Ustawia szerokość na automatyczną, aby elementy nie zajmowały całej szerokości */
+    //display: flex;
+    //align-items: center;
+    gap: 10px; /* Dodaje odstęp między elementami */
+    justify-content: flex-end; /* Ustawia elementy na końcu kontenera */
+}
+
+.form-check-input {
+    width: auto;
+    height: auto;
+    appearance: auto;
+    margin-right: 5px;
+    //vertical-align: middle; /* Wyrównuje checkboxy do środka w pionie */
+}
+
+.form-check-label {
+    display: inline-block;
+    //vertical-align: middle; /* Wyrównuje tekst do środka w pionie */
+}
+
+
+		.modal-content {
+			background-color: #1e1e1e;
+			color: white;
+		}
+		.btn-close {
+			filter: invert(1);
+		}
+		/* Ustawienia dla większych ekranów */
+		@media (min-width: 1200px) {
+			.modal-xl {
+				max-width: 80%; /* Zwiększa rozmiar modala na dużych ekranach */
+			}
+		}
+		.modal-body {
+			max-height: 75vh; /* Dostosowanie maksymalnej wysokości zawartości modala */
+			overflow-y: auto;
+		}
+		
+    </style>
+</head>
+<body data-bs-theme="dark">
+
+
+<script>
+    function checkColumnNames() {  // jQuery was not always working
+        var inputs = document.querySelectorAll('input[name="column_name[]"]');
+        inputs.forEach(function(input) {
+            input.classList.remove('form-error');
+        });
+        var values = {};
+
+        inputs.forEach(function(input) {
+            var value = input.value.trim();
+            if (value) {
+                if (values[value]) {
+                    values[value].count++;
+                    values[value].elements.push(input);
+                } else {
+                    values[value] = { count: 1, elements: [input] };
+                }
+            } else {
+                input.classList.add('form-error');
+            }
+        });
+        for (var key in values) {
+            if (values[key].count > 1) {
+                values[key].elements.forEach(function(element) {
+                    element.classList.add('form-error');
+                });
+            }
+        }
+    }
+</script>
+
+    <div class="container mt-5">
+    <h3>Create New Table</h3>
+    <form id="create-table-form" class="needs-validation" novalidate>
+        <div class="mb-3">
+            <label for="table_name" class="form-label">Table Name:</label>
+            <input type="text" class="form-control form-control-dark" id="table_name" name="table_name" required>
+            <div class="invalid-feedback">
+                Please provide a table name.
+            </div>
+        </div>
+        
+        <h4>Columns</h4>
+        <div id="columns">
+		
+            <div class="idcolumn mb-3">	
+                <div class="details d-flex align-items-center gap-3">
+                    <label>Column Name:</label>
+                    <input type="text" class="form-control form-control-dark" name="column_name[]" value="id" onkeyup="checkColumnNames()" readonly disabled>
+                    <label>Type:</label>
+                    <select class="form-select form-control-dark" name="column_type[]" readonly disabled>
+                        <option value="Integer">Integer</option>
+                    </select>
+                </div>
+                <div class="actions">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="column_primary_key[]" checked disabled>
+                        <label class="form-check-label">Primary key</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input column-autoincrement-key-checkbox" name="column_autoincrement_key[]" checked disabled>
+                        <label class="form-check-label column-autoincrement-key-checkbox">Autoincrement</label>
+                    </div>
+
+                </div>
+            </div>		
+		
+            <div class="column mb-3">	
+                <div class="details">
+                    <label>Column Name:</label>
+                    <input type="text" class="form-control form-control-dark" name="column_name[]" onkeyup="checkColumnNames()" required>
+                    <label>Type:</label>
+                    <select class="form-select form-control-dark" name="column_type[]">
+                        <option value="Integer">Integer</option>
+                        <option value="String">String</option>
+                        <option value="Float">Float</option>
+                        <option value="Boolean">Boolean</option>
+                        <option value="DateTime">DateTime</option>
+                        <option value="Text">Text</option>
+                        <option value="ForeignKey">ForeignKey</option>
+                        <option value="BigInt">BigInt</option>
+                        <option value="Serial">Serial</option>
+                        <option value="BigSerial">BigSerial</option>
+                        <option value="Numeric">Numeric</option>
+                        <option value="Real">Real</option>
+                        <option value="Double Precision">Double Precision</option>
+                        <option value="Date">Date</option>
+                        <option value="Time">Time</option>
+                        <option value="Interval">Interval</option>
+                        <option value="UUID">UUID</option>
+                        <option value="JSON">JSON</option>
+                        <option value="JSONB">JSONB</option>
+                        <option value="Array">Array</option>
+                    </select>
+                    <label class="maxlength-label">Max Length:</label>
+                    <input type="number" class="form-control form-control-dark maxlength-input" name="column_max_length[]">
+
+					<div class="form-check">
+                        <input type="checkbox" class="form-check-input column-autoincrement-key-checkbox" name="column_autoincrement_key[]">
+                        <label class="form-check-label column-autoincrement-key-checkbox">Autoincrement</label>
+                    </div>
+					
+                    <div class="form-check">
+						<label class="form-check-label foreign-key-input" for="foreign_reference[]" style="display: none">Foreign Key</label>
+                    </div>
+                    <select class="form-select form-control-dark foreign-key-input" name="foreign_reference[]" style="display: none">
+                    </select>
+					
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input column-default-checkbox" name="column_default_checkbox[]">
+                        <label class="form-check-label">Default Value</label>
+                    </div>
+                    <input type="text" class="form-control form-control-dark default-value-input" name="column_default[]" placeholder="Default value" style="display: none;" onkeyup="checkColumnNames()">
+                           
+                </div>
+                <div class="actions d-flex align-items-center gap-3">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="column_required[]">
+                        <label class="form-check-label">Required</label>
+                    </div>
+					
+                    <button type="button" class="btn btn-danger delete-column">X</button>
+                </div>
+            </div>
+        
+		</div>
+        <button type="button" id="add-column" class="btn btn-outline-success">Add Column</button>
+        <button type="submit" class="btn btn-primary" id='createTableBtn'>Create Table</button>
+    </form>
+</div>
+
+
+
+<!-- Modal Structure -->
+<div class="modal fade" id="myModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer" id="modalFooter"></div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    $(document).ready(function() {
+      
+		$('body').css('font-size', '75%');
+	  
+
+        function addColumn() {
+            var newColumn = $('.column').first().clone();
+            newColumn.find('input').val('');  // Reset input values
+            newColumn.find('.maxlength-label, .maxlength-input').hide();  // Hide maxlength fields
+            newColumn.find('.default-value-input').hide();  // Hide default value input initially
+            newColumn.find('.foreign-key-input').hide();  // Hide foreign key input initially
+            $('#columns').append(newColumn);
+        }
+        $('#add-column').on('click', addColumn);
+
+
+        // Function to delete a column
+        $('#columns').on('click', '.delete-column', function() {
+            if ($('.column').length < 2) {
+                return;
+            }
+            showModalAskYesNo(
+                "Are you sure to delete column?", 
+                ()=>{ $(this).closest('.column').remove(); }, 
+                ()=>{ showModalOk("Column was not deleted"); }
+            );
+        });
+
+
+        var primaryKeysList;
+
+        function getPrimaryKeysList() {
+            $.ajax({
+                url: '/db/info/primaries',
+                type: 'GET',
+                success: function(response) {
+                    primaryKeysList = response.result;
+                },
+                error: function(response) {
+                    showModalOk('Server error!');
+                }
+            });
+        } 
+        getPrimaryKeysList();
+
+
+
+        function redEmptyFields() {
+            $('input:visible').each(function() {
+                if ($(this).val().length === 0) {
+                    $(this).addClass('form-error');
+                } else {
+                    $(this).removeClass('form-error');
+                }
+            });
+            if ($('.form-error:visible').length === 0) {
+                $('#createTableBtn').removeClass('form-error');
+            } else {
+                $('#createTableBtn').addClass('form-error');
+            }
+        } 
+        redEmptyFields();
+
+
+        // Function to show/hide fields based on selected type and foreign key status
+		$('#create-table-form').on('change', 'select[name="column_type[]"]', function() {
+			var columnDiv = $(this).closest('.column');
+			var selectedType = columnDiv.find('select[name="column_type[]"]').val();
+			var isForeignKey = selectedType === 'ForeignKey';
+			
+			// Show/hide Max Length based on type and foreign key
+			if (selectedType === 'String' || selectedType === 'Text') {
+				if (!isForeignKey) {
+					columnDiv.find('.maxlength-label, .maxlength-input').show();
+				} else {
+					columnDiv.find('.maxlength-label, .maxlength-input').hide();
+				}
+			} else {
+				columnDiv.find('.maxlength-label, .maxlength-input').hide();
+			}
+
+			// Show/hide Auto Increment for Integer
+			if (selectedType === 'Integer' && !isForeignKey) {
+				columnDiv.find('.column-autoincrement-key-checkbox').show();
+			} else {
+				columnDiv.find('.column-autoincrement-key-checkbox').hide();
+			}
+
+			// Show/hide Foreign Key input
+			if (isForeignKey) {
+				columnDiv.find('.foreign-key-input').show();
+                getPrimaryKeysList();
+                let select = columnDiv.find('select[name="foreign_reference[]"]');
+
+                primaryKeysList.forEach(function (option){
+                    select.append(new Option(option, option));
+                });
+				// Hide fields that are not needed for foreign keys
+				columnDiv.find('.maxlength-label, .maxlength-input').hide();
+				columnDiv.find('.column-autoincrement-key-checkbox').hide();
+				columnDiv.find('.default-value-input').hide();
+			} else {
+				columnDiv.find('.foreign-key-input').hide();
+			}
+            redEmptyFields();
+		});
+		
+		
+        // Show/hide default value input when checkbox is clicked
+        $('#create-table-form').on('change', '.column-default-checkbox', function() {
+            let columnDiv = $(this).closest('.column');
+            if (this.checked) {
+                columnDiv.find('.default-value-input').show();
+            } else {
+                columnDiv.find('.default-value-input').hide();
+            }
+            redEmptyFields();
+        });
+
+
+        // receive already created tables to not allow repeat new table's name
+        $('#table_name').on('change', ()=>{
+            let currValue = $('#table_name').val();
+            $.ajax({
+                url: '/db/info/table_names',
+                type: 'GET',
+                success: function(response) {
+                    for (let name of response.result) {
+                        if (currValue === name) {
+                            $('#table_name').addClass('form-error');
+                            break;
+                        } else {
+                            $('#table_name').removeClass('form-error');
+                        }
+                    }
+                }
+            });//ajax
+            redEmptyFields();
+        });
+        
+		
+		
+	// Validate default value based on column type
+    $('#create-table-form').on('input', '.default-value-input', function() {
+        var columnDiv = $(this).closest('.column');
+        var selectedType = columnDiv.find('select[name="column_type[]"]').val();
+        var defaultValue = $(this).val();
+        var isValid = true;
+        var errorMessage = '';
+
+        // Check if default value matches the selected type
+        switch (selectedType) {
+            case 'Integer':
+            case 'BigInt':
+            case 'Serial':
+            case 'BigSerial':
+                if (!/^\d+$/.test(defaultValue)) {
+                    isValid = false;
+                    errorMessage = 'Default value must be an integer.';
+                }
+                break;
+            case 'Float':
+            case 'Numeric':
+            case 'Real':
+            case 'Double Precision':
+                if (isNaN(defaultValue)) {
+                    isValid = false;
+                    errorMessage = 'Default value must be a number.';
+                }
+                break;
+            case 'Boolean':
+                if (!['true', 'false', '1', '0'].includes(defaultValue.toLowerCase())) {
+                    isValid = false;
+                    errorMessage = 'Default value must be true/false or 1/0.';
+                }
+                break;
+            case 'String':
+            case 'Text':
+                // No specific validation for string/text types
+                break;
+            case 'Date':
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(defaultValue)) {
+                    isValid = false;
+                    errorMessage = 'Default value must be a valid date (YYYY-MM-DD).';
+                }
+                break;
+            case 'Time':
+                if (!/^\d{2}:\d{2}:\d{2}$/.test(defaultValue)) {
+                    isValid = false;
+                    errorMessage = 'Default value must be a valid time (HH:MM:SS).';
+                }
+                break;
+            case 'DateTime':
+                if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(defaultValue)) {
+                    isValid = false;
+                    errorMessage = 'Default value must be a valid date-time (YYYY-MM-DDTHH:MM:SS).';
+                }
+                break;
+            // Add other types if necessary
+            default:
+                break;
+        }
+
+        // Display validation message
+        if (!isValid) {
+            $(this).addClass('is-invalid');
+            if (!$(this).next('.invalid-feedback').length) {
+                $(this).after('<div class="invalid-feedback">'+ errorMessage +'</div>');
+            }
+        } else {
+            $(this).removeClass('is-invalid');
+            $(this).next('.invalid-feedback').remove();
+        }
+        redEmptyFields();
+    });
+
+
+
+function serializeFields() {
+    let result = [];
+
+    $('.idcolumn, .column').each(function() {
+        let columnDetails = {};
+
+        $(this).find('input, select').each(function() {
+            let name = $(this).attr('name');
+            let value;
+
+            if ($(this).attr('type') === 'checkbox') {
+                value = $(this).is(':checked') ? 'true' : 'false'; // checkboxes
+            } else {
+                value = $(this).val();
+            }
+            if (name && value) {
+                name = name.replace(/\[\]$/, '');   // some fields has '[]' at the end of name, remove it
+                if (name.includes('column_')) {
+                    name = name.replace('column_', '');
+                }
+                columnDetails[name] = value;
+            }
+        });
+        result.push(columnDetails);
+    });
+    return result;  // returns lists of dict
+}
+
+
+
+        // Form submission handling
+        $('#create-table-form').submit(function(event) {
+            event.preventDefault();
+
+            var formData = {
+                table_name: $('#table_name').val(),
+                columns: serializeFields()
+            };
+            console.log(JSON.stringify(formData));
+
+            $.ajax({
+                url: '/db/create_table',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    showModalOk('Table created successfully!', cb=function(){window.location.href = '/db/table/fk/' + formData.table_name;});
+                },
+                error: function(error) {
+                    showModalOk('Error creating table. Message: ' + JSON.stringify(error.responseJSON.error));
+                }
+            });
+        });
+
+        // Initial hide for maxlength fields
+        $('.maxlength-label, .maxlength-input').hide();
+
+
+		// Show OK Modal
+		function showModalOk(message, cb=undefined) {
+				const modalTitle = document.getElementById('modalTitle');
+				const modalBody = document.getElementById('modalBody');
+				const modalFooter = document.getElementById('modalFooter');
+
+				modalTitle.innerHTML = 'Information';
+				modalBody.innerHTML = `<p>${message}</p>`;
+				modalFooter.innerHTML = `<button type="button" class="btn btn-primary" id="btnOk" data-bs-dismiss="modal">OK</button>`;
+
+                if (cb) {
+                    $('#btnOk').on('click', function(){cb()});
+                }
+				var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+				myModal.show();
+			}
+
+		// Show Yes/No Modal
+		function showModalAskYesNo(message, yesCallback, noCallback) {
+				const modalTitle = document.getElementById('modalTitle');
+				const modalBody = document.getElementById('modalBody');
+				const modalFooter = document.getElementById('modalFooter');
+
+				modalTitle.innerHTML = 'Confirm';
+				modalBody.innerHTML = `<p>${message}</p>`;
+				modalFooter.innerHTML = `
+					<button type="button" class="btn btn-success" id="yesBtn">Yes</button>
+					<button type="button" class="btn btn-danger" id="noBtn" data-bs-dismiss="modal">No</button>
+				`;
+
+				var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+				myModal.show();
+
+				document.getElementById('yesBtn').onclick = function() {
+					if (yesCallback) yesCallback();
+					myModal.hide();
+				};
+				document.getElementById('noBtn').onclick = function() {
+					if (noCallback) noCallback();
+					myModal.hide();
+				};
+			}
+    });
+</script>
+
