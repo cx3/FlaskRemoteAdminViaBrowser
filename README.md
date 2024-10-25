@@ -21,7 +21,7 @@ app.config['LOGIN_REQUIRED_SECURE_DECORATOR'] = True    into False
 
 Short info about plugins:
 
-
+--------------------------------------------------------------------------------------------------------------
 
 /app - main application routes - explore files in browser like in windowed based operating system
 
@@ -46,14 +46,76 @@ Short info about plugins:
 
  * html photo explorer
 
+--------------------------------------------------------------------------------------------------------------
+
 
 /cmd - emulator (!!!)  of server's side terminal - not always commands works however its syntax is correct!
 
  * Working under remote Python debugger, executed code inspector, simple Python IDE
 
-/db
+--------------------------------------------------------------------------------------------------------------
 
- * SQLite/Postgres dynamic database editor - in future
+
+/db - Early version of browser based database editor for most popular database types like: SQLite, PostgreSQL
+  MariaDB, powered by SQLAlchemy and Pandas Python's libraries. Admin can create new tables using HTML forms,
+  add new entries, edit them, display tables in simple way or with expandable foreign keys - with possibility
+  to edit records in simplified way or with foreign keys.  It is just a beginning of advanced database editor
+  known from systems like phpMyAdmin. Using any databases type will not need SQLs language skills due to good 
+  God had sent people keyboard and mouse in previous  century for navigating  through windowed world of GUI's. 
+
+ * server:port/db  - main database editor view, almost all CRUD functions database Admin needs is here
+
+ * db/tables   -  HTML with links to tables in current database
+
+ * db/info/<table_name>  -  JSON format of tables in current database
+
+ * db/info/columns/<table_name>  -  JSON format, column names of table
+
+ * db/info/structure/<table_name>  - JSON format, list of dicts like:  
+        info = {
+            'name': col_name,
+            'type': col_info.type,
+            'unique': col_info.unique,
+            'default': col_info.default,
+            'nullable': col_info.nullable,
+            'constraints': col_info.constraints,
+            'primary_key': col_info.primary_key,
+            'foreign_keys': col_info.foreign_keys,
+            'autoincrement': col_info.autoincrement
+        }
+
+ * db/info/primaries  -  JSON format, list of all foreign references   [table_name.primary_column...]
+
+ * db/info/content/<table_name>
+
+    JSON format,  all table content with info about foreign_keys, primary_keys, all records, structure of
+    columns in choosen table. It is used by other routes to render table view and further CRUD operations
+
+ * db/add_record/<table_name>   -  HTML form for adding new record with foreign keys handling
+
+ * db/get_record/<table_name>/<pk>/<pk_value>  -   JSON, fetch record by table_name, existing primary_key  and
+   
+   value under that primary key
+
+ * db/table/<table_name>  -  HTML form with basic table view (unfolded foreign keys), add or edit records
+
+ * db/table/fk/<table_name>  -  HTML form for browsing and editing tables having foreign keys
+
+ * db/edit/<table_name>/<primary_key>/<value>  -  HTML form for updating records with foreign keys
+
+ * db/new_table
+ * db/create_table  -  HTML form for creating tables that columns can reference to other tables using their
+                       primary keys
+
+ * db/upload  [method POST]  -  utility for uploading CSV/XLS/XLSX/db files with content that can be loaded to
+                                current or new databases  (idea just started to become a code)
+
+ * db/uploaded   db/uploaded?file=/path/to/uploaded/file
+
+   Routes for adding new databases or creating tables from common tabelaric content or ready databases 
+
+
+--------------------------------------------------------------------------------------------------------------
  
 /rdp - Remote Desktop Protocol
 
@@ -63,3 +125,5 @@ Short info about plugins:
  do not need it - casting screen is run on the separated thread that eats resources.
  
  Lot of things to-do that even no sense to describe them :)
+
+ Mouse and keyboard enabled and tested, yupi!
