@@ -1,3 +1,7 @@
+import os
+
+from flask import send_from_directory
+
 from api.app.routes import app, socketio
 from api.auth.auth_blueprint import bp as auth_bp
 from api.auth.auth_blueprint import login_required
@@ -24,15 +28,16 @@ app.jinja_env.globals['is_dict'] = is_dict
 app.jinja_env.globals['is_list'] = is_list
 
 
-if app.config.get('LOGIN_REQUIRED_SECURE_DECORATOR', True):
+if app.config.get('LOGIN_REQUIRED_SECURE_DECORATOR', False):
     def startswith(name):
         for _ in ['auth', 'rdp']:
             if name.startswith(_):
                 return True
         return False
 
-
     for rule in app.url_map.iter_rules():
+        if 'favicon.ico' in rule.endpoint or 'favicon.ico' in str(rule):
+            continue
         if rule.endpoint != 'static' and not startswith(rule.endpoint):
             print('Rule:', rule, '\t\tdecorated endpoint:', rule.endpoint)
             view_func = app.view_functions[rule.endpoint]
@@ -43,11 +48,19 @@ if app.config.get('LOGIN_REQUIRED_SECURE_DECORATOR', True):
 @app.route('/site-map')
 def site_map_route():
     links = []
-    for i, rule in enumerate(app.url_map.iter_rules()):
-        endpoint = rule.endpoint
-        link = f'<a href="{rule}">({i})  {endpoint}</a>'
+    for i, rule_ in enumerate(app.url_map.iter_rules()):
+        endpoint = rule_.endpoint
+        link = f'<a href="{rule_}">({i})  {endpoint}</a>'
         links.append(link)
     return "</br>".join(links)
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(
+        os.path.join('/'.join(__file__.replace('\\', '/').split('/')[:-1]), 'static/'),
+        'favicon.ico',
+        mimetype='image/vnd.microsoft.icon')
 
 
 if __name__ == '__main__':
